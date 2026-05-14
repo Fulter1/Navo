@@ -15,13 +15,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="loader" class="loader">
-    <div class="orb one"></div><div class="orb two"></div>
-    <div class="loader-card">
-      <div class="brand-mark pulse"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo</span></div>
-      <h1>مساحتك الشخصية للتركيز.</h1>
-      <p id="loaderText">نجهّز Command Center...</p>
-      <div class="loader-line"><i></i></div>
+  <div id="loader" class="loader navo-splash" aria-label="Loading Navo">
+    <div class="splash-bg"><i></i><i></i><i></i></div>
+    <div class="splash-stars" aria-hidden="true"></div>
+    <div class="loader-card splash-card">
+      <div class="splash-logo-wrap">
+        <div class="brand-mark pulse splash-logo"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo</span></div>
+        <span class="splash-chip">CALM WORKSPACE</span>
+      </div>
+      <h1>نجهّز مساحتك.</h1>
+      <p id="loaderText">ترتيب الواجهة...</p>
+      <div class="splash-steps"><span class="active">واجهة</span><span>مهام</span><span>تركيز</span><span>مزامنة</span></div>
+      <div class="loader-line"><i id="loaderBar"></i></div>
     </div>
   </div>
 
@@ -46,17 +51,17 @@
       </div>
       <form id="authForm" class="glass auth-card">
         <span class="eyebrow">PRIVATE WORKSPACE</span>
-        <h2>ادخل مساحة Navo</h2>
-        <p>سجل بحسابك عشان ترجع لمهامك ومستواك من أي جهاز.</p>
+        <h2>مرحبًا في Navo</h2>
+        <p>ادخل بهدوء، وخل مهامك ومستواك يرجعون لك من أي جهاز.</p>
         <label>اسمك
-          <input id="userName" placeholder="مثال: Mohammed" minlength="2" required>
+          <input id="userName" placeholder="اسمك في Navo" minlength="2" required>
         </label>
         <label>كلمة مرور بسيطة
-          <input id="userPass" type="password" placeholder="••••" minlength="3" required>
+          <input id="userPass" type="password" placeholder="كلمة مرورك" minlength="3" required>
         </label>
-        <button class="primary full" type="submit">دخول / إنشاء مساحة</button>
+        <button class="primary full" type="submit">دخول إلى Navo</button>
         <button id="demoBtn" class="ghost full" type="button">تجربة سريعة</button>
-        <small>Cloud Sync يحفظ مهامك و XP والمساحات. تقدر تستخدم Local للتجربة السريعة.</small>
+        <small class="auth-note">حسابك يحفظ XP والمهام والمساحات. التجربة السريعة تبقى محلية.</small>
       </form>
     </div>
   </section>

@@ -6,14 +6,31 @@ const defaultState=(name='Mohammed')=>({profile:{name,bio:'Personal Operating Sy
 function key(){return 'navox_'+user.toLowerCase()} function save(){localStorage.setItem(key(),JSON.stringify(state));render()} function load(name){user=name;state=JSON.parse(localStorage.getItem(key())||'null')||defaultState(name); state.profile={...defaultState(name).profile,...state.profile}; state.spaces ||= defaultState(name).spaces; state.tasks ||= []; state.notes ||= {}; state.activity ||= {}; state.sessions ||=0; seconds=(state.profile.focusMinutes||25)*60; updateStreak(); applyTheme(false)}
 function updateStreak(){const l=state.profile.lastActive;if(l!==today()){const y=new Date();y.setDate(y.getDate()-1);const ys=y.toISOString().slice(0,10);state.profile.streak=l===ys?(state.profile.streak||1)+1:1;state.profile.lastActive=today();}}
 function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),1900)}
+
+function runSplash(){
+  const texts=['ترتيب الواجهة...','تحميل المهام...','تجهيز Focus Room...','تفعيل المزامنة...'];
+  const steps=[...document.querySelectorAll('.splash-steps span')];
+  const bar=document.querySelector('#loaderBar')||document.querySelector('.loader-line i');
+  const label=document.querySelector('#loaderText');
+  let i=0;
+  const tick=()=>{
+    if(document.querySelector('#loader')?.classList.contains('hide')) return;
+    if(label) label.textContent=texts[i%texts.length];
+    steps.forEach((s,idx)=>s.classList.toggle('active',idx<=i%steps.length));
+    if(bar) bar.style.width=(30+((i%steps.length)+1)*17)+'%';
+    i++;
+  };
+  tick(); clearInterval(runSplash.t); runSplash.t=setInterval(tick,520);
+}
+
 function rank(){const x=state.profile.xp; return x>=2500?'Master':x>=1200?'Deep Worker':x>=500?'Builder':x>=120?'Starter':'Rookie'}
 function level(){return Math.floor((state.profile.xp||0)/200)+1}
 function doneToday(){return state.tasks.filter(t=>t.done && (t.doneAt||'').slice(0,10)===today()).length}
 function tasksToday(){return state.tasks.filter(t=>(t.date||today())===today())}
 function bestTask(){return state.tasks.find(t=>!t.done&&t.pinned)||state.tasks.find(t=>!t.done&&t.priority==='High')||state.tasks.find(t=>!t.done)||null}
 function completion(){return Math.round((state.tasks.filter(t=>t.done).length/Math.max(1,state.tasks.length))*100)}
-function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),300)}
-window.addEventListener('load',()=>{setTimeout(()=>$('#loader')?.classList.add('hide'),800); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
+function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
+window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),1150); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
 $('#authForm').onsubmit=e=>{e.preventDefault(); const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); if(!n||!p)return; localStorage.setItem('navox_current',n); load(n); showApp(); toast('تم دخول مساحة Navo')};
 $('#demoBtn').onclick=()=>{localStorage.setItem('navox_current','Mohammed');load('Mohammed');showApp()};
 $('#logout').onclick=()=>{localStorage.removeItem('navox_current');location.reload()};
@@ -156,6 +173,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function friendlyError(e){
     const m=String(e?.message||e||'');
     if(m.includes('rate')||m.includes('429'))return 'فيه حد مؤقت على إيميلات Supabase. طفي Confirm email أو انتظر دقيقة وجرب.';
+    if(m.includes('User already registered'))return 'الحساب موجود. استخدم نفس كلمة المرور أو غيّر البريد.';
     if(m.includes('Invalid login'))return 'البريد أو كلمة المرور غير صحيحة.';
     if(m.includes('Email not confirmed'))return 'لازم تطفي Confirm email من Supabase أو تؤكد البريد.';
     if(m.includes('Failed to fetch'))return 'تعذر الاتصال بالسحابة. تأكد من رابط Supabase والإنترنت.';
@@ -176,7 +194,11 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
     catch(e){loginError=e;}
     if(!data){
       try{data=await request('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password,data:{name}})});}
-      catch(e){throw new Error(friendlyError(e));}
+      catch(e){
+        const msg=String(e?.message||e||'');
+        if(msg.includes('already registered')) throw new Error('الحساب موجود. اكتب كلمة المرور الصحيحة للدخول.');
+        throw new Error(friendlyError(e));
+      }
     }
     if(!data?.access_token){
       if(loginError) throw new Error(friendlyError(loginError));
@@ -218,7 +240,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
       await refreshSession();
       await request('/rest/v1/navo_states',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:cloudSession.user_id,email:cloudSession.email,data:state,updated_at:new Date().toISOString()})});
       setBadge('Synced','synced');
-    }catch(e){console.warn('[Navo sync]',e); setBadge(navigator.onLine?'Local saved':'offline','calm');}
+    }catch(e){console.warn('[Navo sync]',e); setBadge(navigator.onLine?'Saved locally':'offline','calm');}
     finally{syncing=false;}
   }
   function queueSync(){if(!cloudSession)return; clearTimeout(syncTimer); syncTimer=setTimeout(pushStateNow,700);}
@@ -267,7 +289,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
         localStorage.setItem(key(),JSON.stringify(state));
         if(!remote)await pushStateNow();
         showApp(); applyMouseMode(); setBadge('Synced','synced'); toast('تم الدخول والمزامنة');
-      }catch(err){const msg=friendlyError(err); toast(msg); setBadge('Local saved','calm');}
+      }catch(err){const msg=friendlyError(err); toast(msg); setBadge('Cloud ready','calm');}
     },true);
   }
   function patchSave(){safe(()=>{
