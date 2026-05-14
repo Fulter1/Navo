@@ -15,18 +15,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="loader" class="loader navo-splash" aria-label="Loading Navo">
-    <div class="splash-bg"><i></i><i></i><i></i></div>
-    <div class="splash-stars" aria-hidden="true"></div>
-    <div class="loader-card splash-card">
-      <div class="splash-logo-wrap">
-        <div class="brand-mark pulse splash-logo"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo</span></div>
-        <span class="splash-chip">CALM WORKSPACE</span>
-      </div>
-      <h1>نجهّز مساحتك.</h1>
-      <p id="loaderText">ترتيب الواجهة...</p>
-      <div class="splash-steps"><span class="active">واجهة</span><span>مهام</span><span>تركيز</span><span>مزامنة</span></div>
-      <div class="loader-line"><i id="loaderBar"></i></div>
+  <div id="loader" class="loader navo-loader" aria-label="Loading Navo">
+    <div class="loader-aurora"></div>
+    <div class="loader-box">
+      <div class="loader-logo"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo</span></div>
+      <div class="loader-spinner" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h1>نرتّب مساحتك</h1>
+      <p id="loaderText">تجهيز تجربة هادئة...</p>
+      <div class="loader-progress"><i id="loaderBar"></i></div>
     </div>
   </div>
 
@@ -35,33 +31,43 @@
   <div class="ambient ambient-b"></div>
   <div id="toast" class="toast"></div>
 
-  <section id="auth" class="auth-view">
-    <div class="auth-shell">
-      <div class="auth-copy">
-        <div class="brand-mark"><img src="assets/navo-mark.svg" alt=""><span>Navo</span></div>
-        <span class="eyebrow">CALM INTELLIGENCE</span>
-        <h1>ركز على الشيء المهم.</h1>
-        <p>نظام شخصي ذكي يرتب يومك، يحمي تركيزك، ويخليك تشوف أولوياتك بدون زحمة.</p>
-        <div class="feature-row"><span>Command Center</span><span>Focus Room</span><span>Smart Spaces</span></div>
-        <div class="glass live-preview">
-          <b>Today Insight</b>
-          <p>جلسة تركيز واحدة الآن تكفي تبدأ اليوم بطريقة واضحة.</p>
-          <div class="mini-orbits"><i></i><i></i><i></i></div>
+  <section id="auth" class="auth-view auth-v3">
+    <div class="auth-shell auth-shell-v3">
+      <aside class="auth-brand-panel">
+        <div class="brand-mark auth-brand"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo</span></div>
+        <span class="eyebrow">PERSONAL WORKSPACE</span>
+        <h1>ادخل بهدوء.<br>وابدأ أهم شيء.</h1>
+        <p>حسابك يحفظ مستواك، مهامك، ومساحاتك من أي جهاز بدون تعقيد.</p>
+        <div class="auth-mini-cards">
+          <div><b>Cloud Sync</b><span>من أي جهاز</span></div>
+          <div><b>Focus Room</b><span>جلسات هادئة</span></div>
+          <div><b>XP Level</b><span>تقدمك محفوظ</span></div>
         </div>
-      </div>
-      <form id="authForm" class="glass auth-card">
-        <span class="eyebrow">PRIVATE WORKSPACE</span>
-        <h2>مرحبًا في Navo</h2>
-        <p>ادخل بهدوء، وخل مهامك ومستواك يرجعون لك من أي جهاز.</p>
-        <label>اسم المستخدم
-          <input id="userName" placeholder="مثال: محمد" minlength="3" autocomplete="username" required>
+      </aside>
+
+      <form id="authForm" class="glass auth-card auth-card-v3">
+        <div class="auth-card-head">
+          <span class="eyebrow">WELCOME BACK</span>
+          <h2>تسجيل الدخول</h2>
+          <p>استخدم اسم المستخدم وكلمة المرور فقط.</p>
+        </div>
+
+        <label class="field">اسم المستخدم
+          <div class="input-wrap"><span>@</span><input id="userName" placeholder="مثال: Mohammed55" minlength="3" autocomplete="username" required></div>
         </label>
-        <label>كلمة المرور
-          <input id="userPass" type="password" placeholder="*******" minlength="6" autocomplete="current-password" required>
+        <label class="field">كلمة المرور
+          <div class="input-wrap"><span>●</span><input id="userPass" type="password" placeholder="كلمة المرور" minlength="6" autocomplete="current-password" required></div>
         </label>
-        <button class="primary full" type="submit">دخول إلى Navo</button>
-        <button id="demoBtn" class="ghost full" type="button">تجربة سريعة</button>
-        <small class="auth-note">استخدم Username وكلمة مرور. Navo يحفظ XP والمهام والمساحات ويزامنها بين أجهزتك.</small>
+
+        <div class="auth-sync-row">
+          <div><b>مزامنة الحساب</b><small id="authSyncText">Cloud جاهز إذا Supabase مضبوط</small></div>
+          <span id="authSyncDot" class="sync-dot"></span>
+        </div>
+
+        <button class="primary full auth-submit" type="submit">دخول / إنشاء حساب</button>
+        <button id="demoBtn" class="ghost full" type="button">تجربة محلية سريعة</button>
+
+        <small class="auth-note">ما تحتاج بريد. Navo يحوّل اسم المستخدم لحساب آمن بالخلفية للمزامنة فقط.</small>
       </form>
     </div>
   </section>
