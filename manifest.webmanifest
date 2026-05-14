@@ -77,8 +77,9 @@
         <button class="nav" data-page="dump"><span>✎</span><b>Brain</b></button>
         <button class="nav" data-page="insights"><span>▣</span><b>Insights</b></button>
         <button class="nav" data-page="profile"><span>♛</span><b>Profile</b></button>
+        <button class="nav" data-page="settings"><span>⚙</span><b>Settings</b></button>
       </nav>
-      <button id="themeBtn" class="round">☾</button>
+      <div class="rail-footer"><small>Navo Workspace</small></div>
     </aside>
 
     <section class="workspace">
@@ -89,8 +90,8 @@
         </div>
         <div class="top-actions">
           <button id="openCmd" class="ghost">⌘K</button>
+          <button id="themeBtn" class="ghost theme-top" title="الوضع الليلي">☾ الوضع</button>
           <button id="quickAdd" class="primary">＋ مهمة</button>
-          <button id="logout" class="ghost">خروج</button>
         </div>
       </header>
 
@@ -145,15 +146,26 @@
       </section>
 
       <section id="focus" class="page">
-        <div id="focusRoom" class="focus-room glass">
+        <div id="focusRoom" class="focus-room glass focus-room-v2">
           <div class="focus-bg"><i></i><i></i><i></i></div>
           <button id="fullBtn" class="round full-btn">⛶</button>
-          <span class="eyebrow">FOCUS ROOM</span>
+          <div class="focus-header-v2">
+            <span class="eyebrow">FOCUS ROOM</span>
+            <span id="focusModeChip" class="focus-mode-chip">Focus Session</span>
+          </div>
           <h2 id="focusTask">مهمة واحدة فقط</h2>
-          <div class="timer-ring"><svg viewBox="0 0 260 260"><circle cx="130" cy="130" r="112"></circle><circle id="timerCircle" cx="130" cy="130" r="112"></circle></svg><strong id="timer">25:00</strong></div>
+          <p id="focusSubline">خلّ الشاشة بسيطة، والمهمة واضحة، والباقي بعدين.</p>
+          <div class="timer-shell">
+            <div class="timer-ring"><svg viewBox="0 0 260 260"><circle cx="130" cy="130" r="112"></circle><circle id="timerCircle" cx="130" cy="130" r="112"></circle></svg><strong id="timer">25:00</strong><small id="timerLabel">جلسة تركيز</small></div>
+          </div>
+          <div class="focus-stats-row">
+            <div><span>المدة</span><b id="focusLengthLabel">25m</b></div>
+            <div><span>الراحة</span><b id="breakLengthLabel">5m</b></div>
+            <div><span>الجلسات</span><b id="focusSessionLabel">0</b></div>
+          </div>
           <p id="focusQuote">كل ما تحتاجه الآن هو بداية هادئة.</p>
           <div class="focus-controls"><button id="startTimer" class="primary">ابدأ</button><button id="pauseTimer" class="ghost">إيقاف</button><button id="resetTimer" class="ghost">إعادة</button></div>
-          <div class="sound-row"><button class="sound" data-sound="rain">Rain</button><button class="sound" data-sound="space">Space</button><button class="sound" data-sound="cafe">Cafe</button><button class="sound" data-sound="none">Off</button></div>
+          <div class="sound-row"><button class="sound" data-sound="none">Off</button><button class="sound" data-sound="cafe">Cafe</button><button class="sound" data-sound="space">Space</button><button class="sound" data-sound="rain">Rain</button></div>
         </div>
       </section>
 
@@ -185,16 +197,25 @@
       </section>
 
       <section id="profile" class="page">
-        <div class="profile-layout">
-          <article class="glass profile-card"><div id="avatar" class="avatar">M</div><h2 id="profileName">Mohammed</h2><p id="profileBio">Personal Operating System</p><div class="level"><span id="levelLabel">Level 1</span><i><em id="levelFill"></em></i></div></article>
-          <article class="glass settings-card"><h3>إعدادات سريعة</h3><label>اسم العرض<input id="displayName"></label><label>نبذة<textarea id="bioInput"></textarea></label><div class="two"><label>Focus minutes<input id="focusMinutes" type="number" min="5" max="90"></label><label>Break minutes<input id="breakMinutes" type="number" min="1" max="30"></label></div><button id="saveProfile" class="primary full">حفظ</button></article>
-          <article class="glass settings-card cloud-account-card"><h3>الحساب والمزامنة</h3><p class="muted-line">Cloud Sync يحفظ مستواك و XP والمهام والمساحات على حسابك، وتقدر تدخل من أي جهاز.</p><div class="cloud-status-row"><span id="cloudStatus">Local Mode</span><b id="cloudEmail">غير متصل</b></div><div class="two"><button id="cloudSyncNow" class="ghost" type="button">مزامنة الآن</button><button id="cloudDisconnect" class="ghost" type="button">فصل السحابة</button></div><label>تأثير الماوس<select id="mouseEffectSelect"><option value="off" selected>Off — إيقاف</option><option value="soft">Soft — خفيف</option><option value="full">Full — كامل</option></select></label></article>
+        <div class="profile-layout profile-clean">
+          <article class="glass profile-card profile-hero"><div id="avatar" class="avatar">M</div><h2 id="profileName">Mohammed</h2><p id="profileBio">Personal Operating System</p><div class="level"><span id="levelLabel">Level 1</span><i><em id="levelFill"></em></i></div></article>
+          <article class="glass settings-card profile-summary"><h3>ملخصك</h3><div class="settings-mini-grid"><div><span>XP</span><b id="profileXpMini">0</b></div><div><span>Focus</span><b id="profileFocusMini">0</b></div><div><span>Spaces</span><b id="profileSpacesMini">0</b></div><div><span>Tasks</span><b id="profileTasksMini">0</b></div></div><button data-jump="settings" class="primary full" type="button">فتح الإعدادات</button></article>
+        </div>
+      </section>
+
+      <section id="settings" class="page">
+        <div class="section-head page-head"><div><span class="eyebrow">SETTINGS</span><h2>الإعدادات</h2></div></div>
+        <div class="settings-layout-v2">
+          <article class="glass settings-card"><h3>الملف الشخصي</h3><label>اسم العرض<input id="displayName" placeholder="اسمك داخل Navo"></label><label>نبذة<textarea id="bioInput" placeholder="اكتب وصف بسيط عنك"></textarea></label><button id="saveProfile" class="primary full">حفظ التغييرات</button></article>
+          <article class="glass settings-card"><h3>التركيز والوقت</h3><div class="two"><label>Focus minutes<input id="focusMinutes" type="number" min="5" max="90"></label><label>Break minutes<input id="breakMinutes" type="number" min="1" max="30"></label></div><p class="muted-line">هذه الإعدادات تغير مؤقت Focus Room في كل جلسة.</p></article>
+          <article class="glass settings-card"><h3>المظهر</h3><button id="themeMirrorBtn" class="ghost full" type="button">تبديل الوضع الليلي / النهاري</button><label>تأثير الماوس<select id="mouseEffectSelect"><option value="off" selected>Off — إيقاف</option><option value="soft">Soft — خفيف</option><option value="full">Full — كامل</option></select></label></article>
+          <article class="glass settings-card cloud-account-card"><h3>الحساب والمزامنة</h3><p class="muted-line">Cloud Sync يحفظ مستواك و XP والمهام والمساحات على حسابك، وتقدر تدخل من أي جهاز.</p><div class="cloud-status-row"><span id="cloudStatus">Local Mode</span><b id="cloudEmail">غير متصل</b></div><div class="two"><button id="cloudSyncNow" class="ghost" type="button">مزامنة الآن</button><button id="cloudDisconnect" class="ghost" type="button">فصل السحابة</button></div><button id="logout" class="danger full" type="button">تسجيل خروج</button></article>
         </div>
       </section>
     </section>
 
     <nav class="mobile-nav">
-      <button class="mnav active" data-page="center">⌘<span>Center</span></button><button class="mnav" data-page="today">◌<span>Today</span></button><button class="mnav" data-page="focus">◉<span>Focus</span></button><button class="mnav" data-page="spaces">▦<span>Spaces</span></button><button class="mnav" data-page="dump">✎<span>Brain</span></button>
+      <button class="mnav active" data-page="center">⌘<span>Center</span></button><button class="mnav" data-page="today">◌<span>Today</span></button><button class="mnav" data-page="focus">◉<span>Focus</span></button><button class="mnav" data-page="spaces">▦<span>Spaces</span></button><button class="mnav" data-page="dump">✎<span>Brain</span></button><button class="mnav" data-page="settings">⚙<span>Settings</span></button>
     </nav>
   </main>
 
