@@ -31,10 +31,10 @@ function bestTask(){return state.tasks.find(t=>!t.done&&t.pinned)||state.tasks.f
 function completion(){return Math.round((state.tasks.filter(t=>t.done).length/Math.max(1,state.tasks.length))*100)}
 function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
 window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),1150); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
-$('#authForm').onsubmit=e=>{e.preventDefault(); const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); if(!n||!p)return; localStorage.setItem('navox_current',n); load(n); showApp(); toast('تم دخول مساحة Navo')};
+$('#authForm').onsubmit=e=>{e.preventDefault(); const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); if(!n||!p)return; if(p.length<6)return toast('كلمة المرور لازم تكون 6 أحرف على الأقل'); localStorage.setItem('navox_current',n); load(n); showApp(); toast('تم دخول مساحة Navo')};
 $('#demoBtn').onclick=()=>{localStorage.setItem('navox_current','Mohammed');load('Mohammed');showApp()};
 $('#logout').onclick=()=>{localStorage.removeItem('navox_current');location.reload()};
-function applyTheme(toggle=true){ if(toggle){state.profile.theme=state.profile.theme==='light'?'dark':'light'; localStorage.setItem(key(),JSON.stringify(state));} document.body.classList.toggle('light',state.profile.theme==='light'); $('#themeBtn') && ($('#themeBtn').textContent=state.profile.theme==='light'?'☀':'☾')}
+function applyTheme(toggle=true){ if(toggle){state.profile.theme=state.profile.theme==='light'?'dark':'light'; localStorage.setItem(key(),JSON.stringify(state));} document.body.classList.toggle('light',state.profile.theme==='light'); $('#themeBtn') && ($('#themeBtn').textContent=state.profile.theme==='light'?'☀ الوضع النهاري':'🌙 الوضع الليلي')}
 $('#themeBtn').onclick=()=>applyTheme(true); document.addEventListener('click',e=>{if(e.target.closest('#themeMirrorBtn')) applyTheme(true);});
 function page(id){$$('.page').forEach(p=>p.classList.toggle('active',p.id===id));$$('.nav,.mnav').forEach(b=>b.classList.toggle('active',b.dataset.page===id)); const titles={center:'Command Center',today:'Today',focus:'Focus Room',spaces:'Spaces',dump:'Brain Dump',insights:'Insights',profile:'Profile',settings:'Settings'}; $('#pageTitle').textContent=titles[id]||'Navo'; if(id==='focus') updateTimer()}
 $$('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page)); document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]'); if(b) page(b.dataset.jump)});
@@ -168,7 +168,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function getSession(){try{return JSON.parse(localStorage.getItem(sessionKey)||localStorage.getItem('navox_cloud_session')||'null')}catch{return null}}
   function setSession(s){cloudSession=s; if(s)localStorage.setItem(sessionKey,JSON.stringify(s)); else {localStorage.removeItem(sessionKey);localStorage.removeItem('navox_cloud_session')} updateCloudUI();}
   function badge(){let b=document.querySelector('.cloud-badge'); if(!b){b=document.createElement('div');b.className='cloud-badge calm';b.innerHTML='<i></i><span>Local ready</span>';document.body.appendChild(b)} return b}
-  function setBadge(text,cls='calm'){const b=badge(); b.className='cloud-badge '+cls; b.querySelector('span').textContent=text; const st=document.querySelector('#cloudStatus'); if(st)st.textContent=text; const em=document.querySelector('#cloudEmail'); if(em)em.textContent=cloudSession?.email||'غير متصل';}
+  function setBadge(text,cls='calm'){const b=badge(); b.className='cloud-badge '+cls; b.querySelector('span').textContent=text; const st=document.querySelector('#cloudStatus'); if(st)st.textContent=text; const em=document.querySelector('#cloudEmail'); if(em)em.textContent=cloudSession?.username||state?.profile?.username||user||'غير متصل';}
   function authHeaders(token){return {'Content-Type':'application/json','apikey':cfg().supabaseAnonKey,'Authorization':'Bearer '+(token||cfg().supabaseAnonKey)}}
   function friendlyError(e){
     const m=String(e?.message||e||'');
@@ -187,6 +187,8 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
     if(!res.ok)throw new Error(data?.msg||data?.message||txt||('HTTP '+res.status));
     return data;
   }
+  function hashHandle(str){let h=2166136261;str=String(str||'user').trim().toLowerCase();for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
+  function usernameToEmail(name){return 'u_'+hashHandle(name)+'@users.navo.app'}
   async function signInOrUp(email,password,name){
     setBadge('Signing in...','syncing');
     let data=null, loginError=null;
@@ -204,7 +206,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
       if(loginError) throw new Error(friendlyError(loginError));
       throw new Error('تم إنشاء الحساب، لكن Supabase يطلب تأكيد البريد. طفي Confirm email ثم جرب تسجل دخول.');
     }
-    const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
+    const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,username:name,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
     setSession(sess); return sess;
   }
   async function refreshSession(){
@@ -247,7 +249,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function injectAuth(){
     const card=document.querySelector('#authForm'); if(!card||card.querySelector('.auth-cloud-box'))return;
     const box=document.createElement('div'); box.className='auth-cloud-box';
-    box.innerHTML=`<div class="cloud-login-head"><div><b>Cloud Sync</b><span>دخول من أي جهاز</span></div><label class="switch-only"><input id="cloudLoginToggle" type="checkbox" ${configured()?'checked':''}><i></i></label></div><label id="cloudEmailWrap" class="cloud-email-wrap ${configured()?'':'hidden'}">البريد الإلكتروني<input id="cloudEmailLogin" type="email" placeholder="email@example.com" autocomplete="email"></label><small class="auth-cloud-help">إذا الحساب موجود بيدخلك مباشرة. وإذا جديد بينشئه ويحفظ XP والمهام والمساحات.</small>`;
+    box.innerHTML=`<div class="cloud-login-head"><div><b>حساب Navo Cloud</b><span>Username + Password من أي جهاز</span></div><label class="switch-only"><input id="cloudLoginToggle" type="checkbox" ${configured()?'checked':''}><i></i></label></div><small class="auth-cloud-help">اكتب اسم المستخدم وكلمة المرور بالأعلى. إذا الحساب موجود بيدخلك، وإذا جديد بينشئه بأمان.</small>`;
     const btn=card.querySelector('button.primary'); card.insertBefore(box,btn);
     const toggle=document.querySelector('#cloudLoginToggle'), wrap=document.querySelector('#cloudEmailWrap');
     toggle.onchange=e=>wrap.classList.toggle('hidden',!e.target.checked);
@@ -261,7 +263,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function updateCloudUI(){safe(()=>{
     const status=cloudSession ? (configured()?'Cloud Connected':'Config missing') : (configured()?'Cloud ready':'Local ready');
     setBadge(status, cloudSession?'synced':'calm');
-    const email=document.querySelector('#cloudEmail'); if(email)email.textContent=cloudSession?.email||'غير متصل';
+    const email=document.querySelector('#cloudEmail'); if(email)email.textContent=cloudSession?.username||state?.profile?.username||user||'غير متصل'; const am=document.querySelector('#accountModeMini'); if(am)am.textContent=cloudSession?'Cloud':'Local'; const ss=document.querySelector('#syncStateMini'); if(ss)ss.textContent=cloudSession?'Synced':'Ready';
     const sel=document.querySelector('#mouseEffectSelect'); if(sel&&state?.profile?.mouseEffect)sel.value=state.profile.mouseEffect;
   });}
   function applyMouseMode(){const m=state?.profile?.mouseEffect||localStorage.getItem('navo_mouse_effect')||'off'; document.body.classList.remove('mouse-off','mouse-soft','mouse-full'); document.body.classList.add('mouse-'+m); const sel=document.querySelector('#mouseEffectSelect'); if(sel)sel.value=m;}
