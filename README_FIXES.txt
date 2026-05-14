@@ -1,14 +1,21 @@
-/* Navo Cloud Config
-   1) Create a Supabase project
-   2) Run SUPABASE_SETUP.sql
-   3) Paste Project URL + anon public key below
-*/
-window.NAVO_CLOUD = {
-  supabaseUrl: "",
-  supabaseAnonKey: ""
-};
+Navo Luxury Fixed
+=================
 
-window.NAVO_CONFIG = window.NAVO_CONFIG || {
-  SUPABASE_URL: window.NAVO_CLOUD.supabaseUrl,
-  SUPABASE_ANON_KEY: window.NAVO_CLOUD.supabaseAnonKey
-};
+المشاكل التي تم إصلاحها:
+- كانت الملفات المرفوعة متبدلة: index.html كان صورة، app.js كان HTML، navo-config.js كان CSS، و SQL كان JS. تم ترتيبها بأسماء صحيحة.
+- إعادة بناء واجهة تسجيل الدخول: تسجيل دخول + إنشاء حساب بدون بريد ظاهر للمستخدم.
+- إذا اليوزر موجود أثناء إنشاء الحساب تظهر رسالة واضحة.
+- الداشبورد صار أنظف: بطاقات، تقدم اليوم، أهم مهمة، XP، جلسات التركيز.
+- الإعدادات صارت مرتبة: الملف الشخصي، وقت التركيز، المظهر، الحساب والأمان.
+- القائمة الجانبية صارت ثابتة وفخمة على الديسكتوب، وقائمة سفلية للجوال.
+- تحسينات للجوال ومنع الفراغ الأسود/الأبيض يمين الصفحة.
+- إصلاح Service Worker و Manifest.
+
+طريقة التشغيل:
+1) افتح المجلد في VS Code.
+2) شغل Live Server على index.html.
+3) أنشئ حساب جديد باسم مستخدم وكلمة مرور.
+4) جرّب تسجيل الخروج والدخول مرة ثانية.
+
+ملاحظة:
+النسخة تعمل محليًا بدون Supabase. ملف SUPABASE_SETUP.sql اختياري للتطوير القادم إذا تبغى مزامنة سحابية كاملة.
