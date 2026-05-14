@@ -8,7 +8,7 @@ function updateStreak(){const l=state.profile.lastActive;if(l!==today()){const y
 function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),1900)}
 
 function runSplash(){
-  const texts=['ترتيب الواجهة...','تحميل المهام...','تجهيز Focus Room...','تفعيل المزامنة...'];
+  const texts=['تجهيز تجربة هادئة...','ترتيب الواجهة...','تحميل المساحات...','تفعيل المزامنة...'];
   const steps=[...document.querySelectorAll('.splash-steps span')];
   const bar=document.querySelector('#loaderBar')||document.querySelector('.loader-line i');
   const label=document.querySelector('#loaderText');
@@ -30,7 +30,7 @@ function tasksToday(){return state.tasks.filter(t=>(t.date||today())===today())}
 function bestTask(){return state.tasks.find(t=>!t.done&&t.pinned)||state.tasks.find(t=>!t.done&&t.priority==='High')||state.tasks.find(t=>!t.done)||null}
 function completion(){return Math.round((state.tasks.filter(t=>t.done).length/Math.max(1,state.tasks.length))*100)}
 function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
-window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),1150); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
+window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),900); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
 $('#authForm').onsubmit=e=>{e.preventDefault(); const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); if(!n||!p)return; if(p.length<6)return toast('كلمة المرور لازم تكون 6 أحرف على الأقل'); localStorage.setItem('navox_current',n); load(n); showApp(); toast('تم دخول مساحة Navo')};
 $('#demoBtn').onclick=()=>{localStorage.setItem('navox_current','Mohammed');load('Mohammed');showApp()};
 $('#logout').onclick=()=>{localStorage.removeItem('navox_current');location.reload()};
@@ -173,12 +173,12 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function friendlyError(e){
     const m=String(e?.message||e||'');
     if(m.includes('rate')||m.includes('429'))return 'فيه حد مؤقت على إيميلات Supabase. طفي Confirm email أو انتظر دقيقة وجرب.';
-    if(m.includes('User already registered'))return 'الحساب موجود. استخدم نفس كلمة المرور أو غيّر البريد.';
-    if(m.includes('Invalid login'))return 'البريد أو كلمة المرور غير صحيحة.';
+    if(m.includes('User already registered'))return 'اسم المستخدم موجود. استخدم كلمة المرور الصحيحة.';
+    if(m.includes('Invalid login'))return 'اسم المستخدم أو كلمة المرور غير صحيحة.';
     if(m.includes('Email not confirmed'))return 'لازم تطفي Confirm email من Supabase أو تؤكد البريد.';
     if(m.includes('Failed to fetch'))return 'تعذر الاتصال بالسحابة. تأكد من رابط Supabase والإنترنت.';
     if(m.includes('JWT')||m.includes('apikey'))return 'مفتاح Supabase غير صحيح. استخدم publishable/anon key فقط.';
-    return m || 'تعذر الاتصال بالسحابة.';
+    return m || 'تعذر الاتصال بالمزامنة.';
   }
   async function request(path,opts={}){
     if(!configured())throw new Error('حط بيانات Supabase في navo-config.js أول');
@@ -247,12 +247,10 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   }
   function queueSync(){if(!cloudSession)return; clearTimeout(syncTimer); syncTimer=setTimeout(pushStateNow,700);}
   function injectAuth(){
-    const card=document.querySelector('#authForm'); if(!card||card.querySelector('.auth-cloud-box'))return;
-    const box=document.createElement('div'); box.className='auth-cloud-box';
-    box.innerHTML=`<div class="cloud-login-head"><div><b>حساب Navo Cloud</b><span>Username + Password من أي جهاز</span></div><label class="switch-only"><input id="cloudLoginToggle" type="checkbox" ${configured()?'checked':''}><i></i></label></div><small class="auth-cloud-help">اكتب اسم المستخدم وكلمة المرور بالأعلى. إذا الحساب موجود بيدخلك، وإذا جديد بينشئه بأمان.</small>`;
-    const btn=card.querySelector('button.primary'); card.insertBefore(box,btn);
-    const toggle=document.querySelector('#cloudLoginToggle'), wrap=document.querySelector('#cloudEmailWrap');
-    toggle.onchange=e=>wrap.classList.toggle('hidden',!e.target.checked);
+    const text=document.querySelector('#authSyncText');
+    const dot=document.querySelector('#authSyncDot');
+    if(text) text.textContent=configured()?'Cloud Sync جاهز — ادخل من أي جهاز':'Local Mode — أضف Supabase للتزامن';
+    if(dot) dot.className='sync-dot '+(configured()?'on':'local');
   }
   function injectProfileChips(){
     const card=document.querySelector('.cloud-account-card'); if(!card||card.querySelector('.account-chip-row'))return;
@@ -275,23 +273,27 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function patchAuth(){
     const form=document.querySelector('#authForm'); if(!form||form.dataset.cloudPatched)return; form.dataset.cloudPatched='1';
     form.addEventListener('submit',async e=>{
-      const useCloud=document.querySelector('#cloudLoginToggle')?.checked;
-      if(!useCloud)return;
+      const name=(document.querySelector('#userName')?.value||'').trim();
+      const pass=(document.querySelector('#userPass')?.value||'').trim();
+      if(!name||!pass)return;
+      if(pass.length<6)return;
+      if(!configured())return; // fallback to local original handler
       e.preventDefault(); e.stopImmediatePropagation();
-      const name=document.querySelector('#userName').value.trim()||'Navo User';
-      const pass=document.querySelector('#userPass').value.trim();
-      const email=document.querySelector('#cloudEmailLogin').value.trim().toLowerCase();
-      if(!email||!pass)return toast('اكتب البريد وكلمة المرور');
+      const email=usernameToEmail(name);
       try{
         await signInOrUp(email,pass,name);
         const remote=await pullState();
-        user=email;
+        user=name;
         state=remote?normalizeState(remote,name,email):normalizeState(null,name,email);
-        localStorage.setItem('navox_current',email);
+        state.profile.username=name;
+        localStorage.setItem('navox_current',name);
         localStorage.setItem(key(),JSON.stringify(state));
         if(!remote)await pushStateNow();
         showApp(); applyMouseMode(); setBadge('Synced','synced'); toast('تم الدخول والمزامنة');
-      }catch(err){const msg=friendlyError(err); toast(msg); setBadge('Cloud ready','calm');}
+      }catch(err){
+        const msg=friendlyError(err).replace('البريد','اسم المستخدم');
+        toast(msg); setBadge('Cloud ready','calm');
+      }
     },true);
   }
   function patchSave(){safe(()=>{
