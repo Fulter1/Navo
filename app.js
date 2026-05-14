@@ -29,16 +29,17 @@ function doneToday(){return state.tasks.filter(t=>t.done && (t.doneAt||'').slice
 function tasksToday(){return state.tasks.filter(t=>(t.date||today())===today())}
 function bestTask(){return state.tasks.find(t=>!t.done&&t.pinned)||state.tasks.find(t=>!t.done&&t.priority==='High')||state.tasks.find(t=>!t.done)||null}
 function completion(){return Math.round((state.tasks.filter(t=>t.done).length/Math.max(1,state.tasks.length))*100)}
-function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
-window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),900); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
+function showAuth(){ document.body.classList.remove('is-authed'); document.body.classList.add('is-auth'); $('#app')?.classList.add('hidden'); $('#auth')?.classList.remove('hidden'); }
+function showApp(){ document.body.classList.remove('is-auth'); document.body.classList.add('is-authed'); $('#auth')?.classList.add('hidden'); $('#app')?.classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
+window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),900); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}else{showAuth();}});
 
 function setAuthMode(m){
   const form=$('#authForm'); if(!form)return; form.dataset.mode=m;
   $('#loginModeBtn')?.classList.toggle('active',m==='login');
   $('#registerModeBtn')?.classList.toggle('active',m==='register');
-  if($('#authEyebrow')) $('#authEyebrow').textContent=m==='login'?'WELCOME BACK':'NEW ACCOUNT';
+  if($('#authEyebrow')) $('#authEyebrow').textContent=m==='login'?'WELCOME BACK':'CREATE ACCOUNT';
   if($('#authTitle')) $('#authTitle').textContent=m==='login'?'تسجيل الدخول':'إنشاء حساب';
-  if($('#authSubtitle')) $('#authSubtitle').textContent=m==='login'?'ادخل باسم المستخدم وكلمة المرور.':'اختر اسم مستخدم جديد وكلمة مرور قوية.';
+  if($('#authSubtitle')) $('#authSubtitle').textContent=m==='login'?'ادخل باسم المستخدم وكلمة المرور فقط.':'اختر يوزر نيم وكلمة مرور. إذا الاسم مستخدم بنعلمك.';
   if($('#authSubmitBtn')) $('#authSubmitBtn').textContent=m==='login'?'دخول':'إنشاء حساب';
   if($('#authInlineMsg')) $('#authInlineMsg').textContent='';
 }
