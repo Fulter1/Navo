@@ -38,3 +38,162 @@ function openCmd(){const cmd=$('#cmd'),list=$('#cmdList'),input=$('#cmdInput');c
 function renderAll(){applyTheme();renderAuth();renderTasks();renderSpaces();renderProfile();renderStats();renderHeat();renderFocusLabels();$('#dateText').textContent=new Intl.DateTimeFormat('ar-SA',{weekday:'long',day:'numeric',month:'long'}).format(new Date());$('#dailyNote').value=state.notes[today]||'';updateTimer()}
 function init(){bootLoader();initAuth();initNav();initTasks();initSpaces();initSettings();initFocus();initDump();renderAll()}document.addEventListener('DOMContentLoaded',init);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+
+
+/* =========================================================
+   NAVO V2 PREMIUM LOGIC PATCH
+   - personalized greeting
+   - better theme toggle
+   - fullscreen safe toggle
+   - motivational notifications + custom sound
+   ========================================================= */
+(function(){
+  const qs = (s, r=document) => r.querySelector(s);
+  const qsa = (s, r=document) => [...r.querySelectorAll(s)];
+  const motivate = [
+    'خطوة صغيرة اليوم تصنع فرق كبير بكرة.',
+    'ابدأ بمهمة وحدة فقط، والباقي بيصير أسهل.',
+    'تركيزك الآن أهم من الكمال.',
+    'أنت ما تحتاج يوم مثالي، تحتاج بداية واضحة.',
+    'استمر يا بطل، Navo شايف تقدمك.'
+  ];
+  function userNiceName(){
+    try{
+      const raw = localStorage.getItem('navo_state_v3');
+      const s = raw ? JSON.parse(raw) : null;
+      const session = localStorage.getItem('navo_session_v3');
+      const n = (s && s.profile && s.profile.name) || (s && s.user) || session || 'ويجي';
+      return String(n).trim() || 'ويجي';
+    }catch(e){ return 'ويجي'; }
+  }
+  function sound(type='soft'){
+    try{
+      const saved = JSON.parse(localStorage.getItem('navo_state_v3')||'{}');
+      const mode = saved?.settings?.notifySound || type;
+      if(mode === 'mute') return;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      const ctx = new Ctx();
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.055, ctx.currentTime + .018);
+      gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + .42);
+      gain.connect(ctx.destination);
+      const notes = mode === 'spark' ? [660,880,1174] : [523.25,659.25,783.99];
+      notes.forEach((f,i)=>{
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, ctx.currentTime + i*.055);
+        o.connect(gain);
+        o.start(ctx.currentTime + i*.055);
+        o.stop(ctx.currentTime + .34 + i*.035);
+      });
+      setTimeout(()=>ctx.close?.(), 650);
+    }catch(e){}
+  }
+  window.toast = function(message, opts={}){
+    const stack = qs('#nToastStack');
+    const fallback = qs('#toast');
+    const title = opts.title || 'Navo';
+    const icon = opts.icon || '✨';
+    const detail = message || motivate[Math.floor(Math.random()*motivate.length)];
+    if(!stack && fallback){fallback.textContent=detail; fallback.classList.add('show'); clearTimeout(window.toast.t); window.toast.t=setTimeout(()=>fallback.classList.remove('show'),2400); return;}
+    const card = document.createElement('div');
+    card.className = 'n-toast';
+    card.innerHTML = `<div class="ico">${icon}</div><div><strong>${title}</strong><p>${detail}</p></div><button type="button" aria-label="إغلاق">×</button>`;
+    stack.appendChild(card);
+    sound(opts.sound);
+    const close = ()=>{card.style.opacity='0';card.style.transform='translateY(10px) scale(.96)';setTimeout(()=>card.remove(),220)};
+    card.querySelector('button').onclick=close;
+    setTimeout(close, opts.duration || 4200);
+  };
+  window.updatePremiumGreeting = function(){
+    const name = userNiceName();
+    const h = new Date().getHours();
+    const part = h < 12 ? 'صباح النور' : h < 18 ? 'مساء النشاط' : 'مساء الهدوء';
+    const g = qs('#mainGreeting');
+    if(g) g.textContent = `${part} يا ${name}، جاهز نرتب يومك؟`;
+    const ai = qs('#aiInsight');
+    if(ai) ai.textContent = `خل تركيزك على أهم خطوة الآن. ${motivate[Math.floor(Math.random()*motivate.length)]}`;
+    const profile = qs('#profileName'); if(profile && (!profile.textContent || profile.textContent==='Mohammed')) profile.textContent = name;
+    const rail = qs('#railUser'); if(rail) rail.textContent = '@' + name;
+  };
+  const oldRenderStats = window.renderStats;
+  window.renderStats = function(){
+    if(typeof oldRenderStats === 'function') oldRenderStats();
+    try{
+      const total = state.tasks.length;
+      const done = state.tasks.filter(t=>t.done).length;
+      const open = total - done;
+      const set=(id,v)=>{const el=qs(id); if(el) el.textContent=v;};
+      set('#heroOpenTasks', open);
+      set('#heroDoneTasks', done);
+      set('#heroMood', open===0 && total>0 ? 'Victory' : state.sessions>0 ? 'Focused' : 'Calm');
+      updatePremiumGreeting();
+    }catch(e){}
+  };
+  const oldRenderProfile = window.renderProfile;
+  window.renderProfile = function(){
+    if(typeof oldRenderProfile === 'function') oldRenderProfile();
+    updatePremiumGreeting();
+  };
+  const oldApplyTheme = window.applyTheme;
+  window.applyTheme = function(){
+    if(typeof oldApplyTheme === 'function') oldApplyTheme();
+    try{
+      document.body.dataset.theme = state.settings.theme || 'dark';
+      document.body.classList.toggle('light', state.settings.theme === 'frost');
+      const themeBtn = qs('#themeBtn');
+      if(themeBtn) themeBtn.textContent = state.settings.theme === 'frost' ? '☀' : '☾';
+      qsa('[data-theme-pick]').forEach(b=>b.classList.toggle('active', b.dataset.themePick === (state.settings.theme||'dark')));
+      const ns = qs('#notifySound'); if(ns) ns.value = state.settings.notifySound || 'soft';
+    }catch(e){}
+  };
+  const oldInitSettings = window.initSettings;
+  window.initSettings = function(){
+    if(typeof oldInitSettings === 'function') oldInitSettings();
+    qsa('[data-theme-pick]').forEach(btn=>{
+      btn.onclick=()=>{state.settings.theme=btn.dataset.themePick; save(); applyTheme(); toast('تم تغيير ألوان الواجهة بنجاح', {title:'الثيم جاهز', icon:'🎨'});};
+    });
+    const ns=qs('#notifySound');
+    if(ns) ns.onchange=e=>{state.settings.notifySound=e.target.value; save(); toast('تم حفظ صوت التنبيه الجديد', {title:'الصوت', icon:'🔔', sound:e.target.value});};
+    const test=qs('#testNotify');
+    if(test) test.onclick=()=>toast(motivate[Math.floor(Math.random()*motivate.length)], {title:'تحفيز سريع', icon:'⚡'});
+    const saveBtn=qs('#saveProfile');
+    if(saveBtn){
+      const old=saveBtn.onclick;
+      saveBtn.onclick=()=>{ if(old) old(); updatePremiumGreeting(); toast('تم تحديث اسمك داخل الداشبورد', {title:'الملف الشخصي', icon:'👤'}); };
+    }
+  };
+  const oldInitFocus = window.initFocus;
+  window.initFocus = function(){
+    if(typeof oldInitFocus === 'function') oldInitFocus();
+    const btn=qs('#fullBtn'), room=qs('#focusRoom');
+    if(btn && room){
+      btn.onclick=async()=>{
+        try{
+          if(document.fullscreenElement){ await document.exitFullscreen(); }
+          else { await room.requestFullscreen(); }
+        }catch(e){ toast('المتصفح منع وضع الشاشة الكاملة، جرّب تضغط الزر مرة ثانية.', {title:'تنبيه', icon:'⚠️', sound:'mute'}); }
+      };
+      document.addEventListener('fullscreenchange',()=>{ btn.textContent = document.fullscreenElement ? '↙' : '⛶'; });
+    }
+    const st=qs('#startTimer');
+    if(st){ const old=st.onclick; st.onclick=()=>{ if(old) old(); toast('جلسة تركيز بدأت. خلك على مهمة وحدة فقط.', {title:'Focus Mode', icon:'🎯'}); }; }
+  };
+  const oldToggleTask = window.toggleTask;
+  window.toggleTask = function(id){
+    const before = (window.state?.tasks||[]).find(t=>t.id===id)?.done;
+    if(typeof oldToggleTask === 'function') oldToggleTask(id);
+    const after = (window.state?.tasks||[]).find(t=>t.id===id)?.done;
+    if(!before && after) toast(motivate[Math.floor(Math.random()*motivate.length)], {title:'إنجاز جديد +25 XP', icon:'🏆'});
+  };
+  const oldStartTimer = window.startTimer;
+  window.startTimer = function(){
+    if(typeof oldStartTimer === 'function') oldStartTimer();
+  };
+  document.addEventListener('DOMContentLoaded',()=>{
+    setTimeout(()=>{ updatePremiumGreeting(); applyTheme?.(); }, 80);
+    setTimeout(()=>toast('نسخة Navo الجديدة جاهزة — رتّب يومك بهدوء.', {title:'أهلًا بك', icon:'✨'}), 900);
+  });
+})();
