@@ -1,22 +1,21 @@
-const CACHE_NAME = 'navo-v1.0.1';
-const ASSETS = [
-  './', './index.html', './style.css', './app.js', './navo-config.js',
-  './manifest.webmanifest', './assets/navo-mark.svg', './assets/navo-icon.png', './assets/navo-logo.png'
-];
+-- Navo X Cloud Sync table
+create table if not exists public.navo_states (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
 
-self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
-});
+alter table public.navo_states enable row level security;
 
-self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim()));
-});
+drop policy if exists "Users can read own Navo state" on public.navo_states;
+create policy "Users can read own Navo state" on public.navo_states
+for select using (auth.uid() = user_id);
 
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-    const copy = response.clone();
-    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-    return response;
-  }).catch(() => caches.match('./index.html'))));
-});
+drop policy if exists "Users can insert own Navo state" on public.navo_states;
+create policy "Users can insert own Navo state" on public.navo_states
+for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own Navo state" on public.navo_states;
+create policy "Users can update own Navo state" on public.navo_states
+for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
