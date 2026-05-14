@@ -31,7 +31,32 @@ function bestTask(){return state.tasks.find(t=>!t.done&&t.pinned)||state.tasks.f
 function completion(){return Math.round((state.tasks.filter(t=>t.done).length/Math.max(1,state.tasks.length))*100)}
 function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
 window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),900); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
-$('#authForm').onsubmit=e=>{e.preventDefault(); const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); if(!n||!p)return; if(p.length<6)return toast('كلمة المرور لازم تكون 6 أحرف على الأقل'); localStorage.setItem('navox_current',n); load(n); showApp(); toast('تم دخول مساحة Navo')};
+
+function setAuthMode(m){
+  const form=$('#authForm'); if(!form)return; form.dataset.mode=m;
+  $('#loginModeBtn')?.classList.toggle('active',m==='login');
+  $('#registerModeBtn')?.classList.toggle('active',m==='register');
+  if($('#authEyebrow')) $('#authEyebrow').textContent=m==='login'?'WELCOME BACK':'NEW ACCOUNT';
+  if($('#authTitle')) $('#authTitle').textContent=m==='login'?'تسجيل الدخول':'إنشاء حساب';
+  if($('#authSubtitle')) $('#authSubtitle').textContent=m==='login'?'ادخل باسم المستخدم وكلمة المرور.':'اختر اسم مستخدم جديد وكلمة مرور قوية.';
+  if($('#authSubmitBtn')) $('#authSubmitBtn').textContent=m==='login'?'دخول':'إنشاء حساب';
+  if($('#authInlineMsg')) $('#authInlineMsg').textContent='';
+}
+$('#loginModeBtn') && ($('#loginModeBtn').onclick=()=>setAuthMode('login'));
+$('#registerModeBtn') && ($('#registerModeBtn').onclick=()=>setAuthMode('register'));
+$('#authForm').onsubmit=e=>{
+  e.preventDefault();
+  const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); const m=$('#authForm')?.dataset.mode||'login';
+  const users=JSON.parse(localStorage.getItem('navo_local_users')||'{}');
+  if(!n||!p)return; if(p.length<6)return toast('كلمة المرور لازم تكون 6 أحرف على الأقل');
+  if(m==='register'){
+    if(users[n.toLowerCase()])return toast('اسم المستخدم موجود');
+    users[n.toLowerCase()]={password:p,createdAt:Date.now()}; localStorage.setItem('navo_local_users',JSON.stringify(users));
+  }else if(users[n.toLowerCase()] && users[n.toLowerCase()].password!==p){
+    return toast('اسم المستخدم أو كلمة المرور غير صحيحة');
+  }
+  localStorage.setItem('navox_current',n); load(n); showApp(); toast(m==='register'?'تم إنشاء الحساب':'تم تسجيل الدخول');
+};
 $('#demoBtn').onclick=()=>{localStorage.setItem('navox_current','Mohammed');load('Mohammed');showApp()};
 $('#logout').onclick=()=>{localStorage.removeItem('navox_current');location.reload()};
 function applyTheme(toggle=true){ if(toggle){state.profile.theme=state.profile.theme==='light'?'dark':'light'; localStorage.setItem(key(),JSON.stringify(state));} document.body.classList.toggle('light',state.profile.theme==='light'); $('#themeBtn') && ($('#themeBtn').textContent=state.profile.theme==='light'?'☀ الوضع النهاري':'🌙 الوضع الليلي')}
@@ -189,25 +214,33 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   }
   function hashHandle(str){let h=2166136261;str=String(str||'user').trim().toLowerCase();for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
   function usernameToEmail(name){return 'u_'+hashHandle(name)+'@users.navo.app'}
-  async function signInOrUp(email,password,name){
+  async function cloudLogin(email,password,name){
     setBadge('Signing in...','syncing');
-    let data=null, loginError=null;
-    try{data=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});}
-    catch(e){loginError=e;}
-    if(!data){
-      try{data=await request('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password,data:{name}})});}
-      catch(e){
-        const msg=String(e?.message||e||'');
-        if(msg.includes('already registered')) throw new Error('الحساب موجود. اكتب كلمة المرور الصحيحة للدخول.');
-        throw new Error(friendlyError(e));
+    try{
+      const data=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+      if(!data?.access_token) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة.');
+      const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,username:name,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
+      setSession(sess); return sess;
+    }catch(e){
+      throw new Error(friendlyError(e));
+    }
+  }
+  async function cloudRegister(email,password,name){
+    setBadge('Creating account...','syncing');
+    try{
+      const data=await request('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password,data:{name,username:name}})});
+      if(!data?.access_token){
+        throw new Error('تم إنشاء الحساب، لكن Supabase يطلب تأكيد البريد. طفي Confirm email ثم سجل دخول.');
       }
+      const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,username:name,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
+      setSession(sess); return sess;
+    }catch(e){
+      const msg=String(e?.message||e||'');
+      if(msg.includes('User already registered')||msg.includes('already registered')||msg.includes('already been registered')){
+        throw new Error('اسم المستخدم موجود');
+      }
+      throw new Error(friendlyError(e));
     }
-    if(!data?.access_token){
-      if(loginError) throw new Error(friendlyError(loginError));
-      throw new Error('تم إنشاء الحساب، لكن Supabase يطلب تأكيد البريد. طفي Confirm email ثم جرب تسجل دخول.');
-    }
-    const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,username:name,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
-    setSession(sess); return sess;
   }
   async function refreshSession(){
     if(!configured()||!cloudSession?.refresh_token)return null;
@@ -249,7 +282,7 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   function injectAuth(){
     const text=document.querySelector('#authSyncText');
     const dot=document.querySelector('#authSyncDot');
-    if(text) text.textContent=configured()?'Cloud Sync جاهز — ادخل من أي جهاز':'Local Mode — أضف Supabase للتزامن';
+    if(text) text.textContent=configured()?'الحساب مربوط تلقائيًا':'تجربة محلية';
     if(dot) dot.className='sync-dot '+(configured()?'on':'local');
   }
   function injectProfileChips(){
@@ -275,13 +308,17 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
     form.addEventListener('submit',async e=>{
       const name=(document.querySelector('#userName')?.value||'').trim();
       const pass=(document.querySelector('#userPass')?.value||'').trim();
+      const authMode=form.dataset.mode||'login';
+      const inline=document.querySelector('#authInlineMsg');
+      if(inline) inline.textContent='';
       if(!name||!pass)return;
       if(pass.length<6)return;
       if(!configured())return; // fallback to local original handler
       e.preventDefault(); e.stopImmediatePropagation();
       const email=usernameToEmail(name);
       try{
-        await signInOrUp(email,pass,name);
+        if(authMode==='register') await cloudRegister(email,pass,name);
+        else await cloudLogin(email,pass,name);
         const remote=await pullState();
         user=name;
         state=remote?normalizeState(remote,name,email):normalizeState(null,name,email);
@@ -289,9 +326,10 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
         localStorage.setItem('navox_current',name);
         localStorage.setItem(key(),JSON.stringify(state));
         if(!remote)await pushStateNow();
-        showApp(); applyMouseMode(); setBadge('Synced','synced'); toast('تم الدخول والمزامنة');
+        showApp(); applyMouseMode(); setBadge('Synced','synced'); toast(authMode==='register'?'تم إنشاء الحساب':'تم تسجيل الدخول');
       }catch(err){
         const msg=friendlyError(err).replace('البريد','اسم المستخدم');
+        if(inline) inline.textContent=msg;
         toast(msg); setBadge('Cloud ready','calm');
       }
     },true);
