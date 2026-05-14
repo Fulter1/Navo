@@ -1,21 +1,17 @@
-# Navo X Cloud Edition
+/* Navo Cloud Config
+   1) Create a Supabase project
+   2) Run the SQL in SUPABASE_SETUP.sql
+   3) Paste Project URL + anon public key below
+*/
+window.NAVO_CLOUD = {
+  // Example: https://xxxxx.supabase.co  (without /rest/v1)
+  supabaseUrl: "",
+  // Use the public publishable/anon key only. Never paste a secret key here.
+  supabaseAnonKey: ""
+};
 
-## وش الجديد؟
-- Mouse effect صار اختياري: Off / Soft / Full.
-- Cloud Sync جاهز عبر Supabase.
-- يحفظ: XP، المستوى، المهام، Spaces، الملاحظات، الجلسات، Heatmap، الإعدادات.
-- Local-first: يشتغل بدون Supabase، ولو ركبت Supabase يصير يدخل من أي جهاز.
-- Sync status داخل البروفايل وفوق الواجهة.
-
-## تركيب Supabase
-1. افتح Supabase وأنشئ مشروع جديد.
-2. من SQL Editor شغّل ملف `SUPABASE_SETUP.sql`.
-3. افتح `navo-config.js`.
-4. حط:
-   - `supabaseUrl` = Project URL
-   - `supabaseAnonKey` = anon public key
-5. ارفع الملفات على استضافة HTTPS.
-
-## مهم
-- لا تحط Service Role Key في الواجهة. استخدم anon public key فقط.
-- لو config فاضي، التطبيق يشتغل Local Mode بدون مشاكل.
+// Backward-compatible alias if you followed older instructions.
+window.NAVO_CONFIG = window.NAVO_CONFIG || {
+  SUPABASE_URL: window.NAVO_CLOUD.supabaseUrl,
+  SUPABASE_ANON_KEY: window.NAVO_CLOUD.supabaseAnonKey
+};
