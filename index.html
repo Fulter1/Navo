@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#07090f" />
   <title>Navo</title>
-  <!-- Navo Product Polish: stable cloud sync, cinematic focus, command palette, mobile polish -->
+  <!-- Navo Username Cloud + Mobile Perfect Update -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/navo-icon.png" />
   <link rel="apple-touch-icon" href="assets/navo-icon.png" />
@@ -53,15 +53,15 @@
         <span class="eyebrow">PRIVATE WORKSPACE</span>
         <h2>مرحبًا في Navo</h2>
         <p>ادخل بهدوء، وخل مهامك ومستواك يرجعون لك من أي جهاز.</p>
-        <label>اسمك
-          <input id="userName" placeholder="اسمك في Navo" minlength="2" required>
+        <label>اسم المستخدم
+          <input id="userName" placeholder="مثال: Mohammed55" minlength="3" autocomplete="username" required>
         </label>
-        <label>كلمة مرور بسيطة
-          <input id="userPass" type="password" placeholder="كلمة مرورك" minlength="3" required>
+        <label>كلمة المرور
+          <input id="userPass" type="password" placeholder="كلمة مرور آمنة" minlength="6" autocomplete="current-password" required>
         </label>
         <button class="primary full" type="submit">دخول إلى Navo</button>
         <button id="demoBtn" class="ghost full" type="button">تجربة سريعة</button>
-        <small class="auth-note">حسابك يحفظ XP والمهام والمساحات. التجربة السريعة تبقى محلية.</small>
+        <small class="auth-note">استخدم Username وكلمة مرور. Navo يحفظ XP والمهام والمساحات ويزامنها بين أجهزتك.</small>
       </form>
     </div>
   </section>
@@ -90,7 +90,7 @@
         </div>
         <div class="top-actions">
           <button id="openCmd" class="ghost">⌘K</button>
-          <button id="themeBtn" class="ghost theme-top" title="الوضع الليلي">☾ الوضع</button>
+          <button id="themeBtn" class="ghost theme-top" title="تبديل الوضع">🌙 الوضع الليلي</button>
           <button id="quickAdd" class="primary">＋ مهمة</button>
         </div>
       </header>
@@ -209,13 +209,13 @@
           <article class="glass settings-card"><h3>الملف الشخصي</h3><label>اسم العرض<input id="displayName" placeholder="اسمك داخل Navo"></label><label>نبذة<textarea id="bioInput" placeholder="اكتب وصف بسيط عنك"></textarea></label><button id="saveProfile" class="primary full">حفظ التغييرات</button></article>
           <article class="glass settings-card"><h3>التركيز والوقت</h3><div class="two"><label>Focus minutes<input id="focusMinutes" type="number" min="5" max="90"></label><label>Break minutes<input id="breakMinutes" type="number" min="1" max="30"></label></div><p class="muted-line">هذه الإعدادات تغير مؤقت Focus Room في كل جلسة.</p></article>
           <article class="glass settings-card"><h3>المظهر</h3><button id="themeMirrorBtn" class="ghost full" type="button">تبديل الوضع الليلي / النهاري</button><label>تأثير الماوس<select id="mouseEffectSelect"><option value="off" selected>Off — إيقاف</option><option value="soft">Soft — خفيف</option><option value="full">Full — كامل</option></select></label></article>
-          <article class="glass settings-card cloud-account-card"><h3>الحساب والمزامنة</h3><p class="muted-line">Cloud Sync يحفظ مستواك و XP والمهام والمساحات على حسابك، وتقدر تدخل من أي جهاز.</p><div class="cloud-status-row"><span id="cloudStatus">Local Mode</span><b id="cloudEmail">غير متصل</b></div><div class="two"><button id="cloudSyncNow" class="ghost" type="button">مزامنة الآن</button><button id="cloudDisconnect" class="ghost" type="button">فصل السحابة</button></div><button id="logout" class="danger full" type="button">تسجيل خروج</button></article>
+          <article class="glass settings-card cloud-account-card"><h3>الحساب والأمان</h3><p class="muted-line">تسجيل الدخول صار باسم مستخدم وكلمة مرور. Navo يستخدم Supabase Auth خلف الكواليس بدون ما يظهر البريد للمستخدم.</p><div class="cloud-status-row"><span id="cloudStatus">Local Mode</span><b id="cloudEmail">غير متصل</b></div><div class="settings-mini-grid account-grid"><div><span>الحالة</span><b id="accountModeMini">Local</b></div><div><span>المزامنة</span><b id="syncStateMini">Ready</b></div></div><div class="two"><button id="cloudSyncNow" class="ghost" type="button">مزامنة الآن</button><button id="cloudDisconnect" class="ghost" type="button">فصل السحابة</button></div><button id="logout" class="danger full" type="button">تسجيل خروج</button></article>
         </div>
       </section>
     </section>
 
     <nav class="mobile-nav">
-      <button class="mnav active" data-page="center">⌘<span>Center</span></button><button class="mnav" data-page="today">◌<span>Today</span></button><button class="mnav" data-page="focus">◉<span>Focus</span></button><button class="mnav" data-page="spaces">▦<span>Spaces</span></button><button class="mnav" data-page="dump">✎<span>Brain</span></button><button class="mnav" data-page="settings">⚙<span>Settings</span></button>
+      <button class="mnav active" data-page="center">⌘<span>الرئيسية</span></button><button class="mnav" data-page="today">◌<span>اليوم</span></button><button class="mnav" data-page="focus">◉<span>تركيز</span></button><button class="mnav" data-page="spaces">▦<span>المساحات</span></button><button class="mnav" data-page="dump">✎<span>الأفكار</span></button><button class="mnav" data-page="settings">⚙<span>الإعدادات</span></button>
     </nav>
   </main>
 
