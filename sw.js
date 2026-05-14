@@ -1,18 +1,28 @@
-const CACHE="navo-clean-auth-v3";
-const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./assets/navo-icon.png','./assets/navo-mark.svg','./assets/navo-logo.png'];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).catch(()=>{}));});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
-self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET')return;
-  const url=new URL(e.request.url);
-  if(e.request.mode==='navigate'||url.pathname.endsWith('/index.html')||url.pathname.endsWith('/navo-config.js')){
-    e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match('./index.html')));return;
-  }
-  e.respondWith(caches.match(e.request).then(cached=>{
-    return cached||fetch(e.request).then(res=>{
-      const copy=res.clone();
-      if(res.ok)caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});
-      return res;
-    });
-  }).catch(()=>caches.match('./index.html')));
-});
+-- Navo Cloud table
+create table if not exists public.navo_states (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text unique,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.navo_states enable row level security;
+
+drop policy if exists "Users can read own Navo state" on public.navo_states;
+create policy "Users can read own Navo state"
+on public.navo_states for select
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own Navo state" on public.navo_states;
+create policy "Users can insert own Navo state"
+on public.navo_states for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own Navo state" on public.navo_states;
+create policy "Users can update own Navo state"
+on public.navo_states for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);

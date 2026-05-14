@@ -1,4 +1,15 @@
-window.NAVO_CLOUD = {
-  supabaseUrl: "https://bsmivunyjbkowlgjwqyt.supabase.co/",
-  supabaseAnonKey: "sb_publishable_C9VWCoS0uF4v3Ujd5kB8kw_23SYEdZa"
-};
+{
+  "name": "Navo",
+  "short_name": "Navo",
+  "description": "Personal workspace for tasks, focus and spaces.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07090f",
+  "theme_color": "#07090f",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "assets/navo-icon.png", "sizes": "274x278", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
