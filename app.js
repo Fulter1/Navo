@@ -8,7 +8,7 @@ function updateStreak(){const l=state.profile.lastActive;if(l!==today()){const y
 function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),1900)}
 
 function runSplash(){
-  const texts=['تجهيز تجربة هادئة...','ترتيب الواجهة...','تحميل المساحات...','تفعيل المزامنة...'];
+  const texts=['ترتيب الواجهة...','تحميل المهام...','تجهيز Focus Room...','تفعيل المزامنة...'];
   const steps=[...document.querySelectorAll('.splash-steps span')];
   const bar=document.querySelector('#loaderBar')||document.querySelector('.loader-line i');
   const label=document.querySelector('#loaderText');
@@ -30,36 +30,11 @@ function tasksToday(){return state.tasks.filter(t=>(t.date||today())===today())}
 function bestTask(){return state.tasks.find(t=>!t.done&&t.pinned)||state.tasks.find(t=>!t.done&&t.priority==='High')||state.tasks.find(t=>!t.done)||null}
 function completion(){return Math.round((state.tasks.filter(t=>t.done).length/Math.max(1,state.tasks.length))*100)}
 function showApp(){ $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden'); render(); setTimeout(()=>$('#loader')?.classList.add('hide'),450)}
-window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),900); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
-
-function setAuthMode(m){
-  const form=$('#authForm'); if(!form)return; form.dataset.mode=m;
-  $('#loginModeBtn')?.classList.toggle('active',m==='login');
-  $('#registerModeBtn')?.classList.toggle('active',m==='register');
-  if($('#authEyebrow')) $('#authEyebrow').textContent=m==='login'?'WELCOME BACK':'NEW ACCOUNT';
-  if($('#authTitle')) $('#authTitle').textContent=m==='login'?'تسجيل الدخول':'إنشاء حساب';
-  if($('#authSubtitle')) $('#authSubtitle').textContent=m==='login'?'ادخل باسم المستخدم وكلمة المرور.':'اختر اسم مستخدم جديد وكلمة مرور قوية.';
-  if($('#authSubmitBtn')) $('#authSubmitBtn').textContent=m==='login'?'دخول':'إنشاء حساب';
-  if($('#authInlineMsg')) $('#authInlineMsg').textContent='';
-}
-$('#loginModeBtn') && ($('#loginModeBtn').onclick=()=>setAuthMode('login'));
-$('#registerModeBtn') && ($('#registerModeBtn').onclick=()=>setAuthMode('register'));
-$('#authForm').onsubmit=e=>{
-  e.preventDefault();
-  const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); const m=$('#authForm')?.dataset.mode||'login';
-  const users=JSON.parse(localStorage.getItem('navo_local_users')||'{}');
-  if(!n||!p)return; if(p.length<6)return toast('كلمة المرور لازم تكون 6 أحرف على الأقل');
-  if(m==='register'){
-    if(users[n.toLowerCase()])return toast('اسم المستخدم موجود');
-    users[n.toLowerCase()]={password:p,createdAt:Date.now()}; localStorage.setItem('navo_local_users',JSON.stringify(users));
-  }else if(users[n.toLowerCase()] && users[n.toLowerCase()].password!==p){
-    return toast('اسم المستخدم أو كلمة المرور غير صحيحة');
-  }
-  localStorage.setItem('navox_current',n); load(n); showApp(); toast(m==='register'?'تم إنشاء الحساب':'تم تسجيل الدخول');
-};
+window.addEventListener('load',()=>{runSplash();setTimeout(()=>$('#loader')?.classList.add('hide'),1150); if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{}); const last=localStorage.getItem('navox_current'); if(last){load(last);showApp();}});
+$('#authForm').onsubmit=e=>{e.preventDefault(); const n=$('#userName').value.trim(); const p=$('#userPass').value.trim(); if(!n||!p)return; localStorage.setItem('navox_current',n); load(n); showApp(); toast('تم دخول مساحة Navo')};
 $('#demoBtn').onclick=()=>{localStorage.setItem('navox_current','Mohammed');load('Mohammed');showApp()};
 $('#logout').onclick=()=>{localStorage.removeItem('navox_current');location.reload()};
-function applyTheme(toggle=true){ if(toggle){state.profile.theme=state.profile.theme==='light'?'dark':'light'; localStorage.setItem(key(),JSON.stringify(state));} document.body.classList.toggle('light',state.profile.theme==='light'); $('#themeBtn') && ($('#themeBtn').textContent=state.profile.theme==='light'?'☀ الوضع النهاري':'🌙 الوضع الليلي')}
+function applyTheme(toggle=true){ if(toggle){state.profile.theme=state.profile.theme==='light'?'dark':'light'; localStorage.setItem(key(),JSON.stringify(state));} document.body.classList.toggle('light',state.profile.theme==='light'); $('#themeBtn') && ($('#themeBtn').textContent=state.profile.theme==='light'?'☀':'☾')}
 $('#themeBtn').onclick=()=>applyTheme(true); document.addEventListener('click',e=>{if(e.target.closest('#themeMirrorBtn')) applyTheme(true);});
 function page(id){$$('.page').forEach(p=>p.classList.toggle('active',p.id===id));$$('.nav,.mnav').forEach(b=>b.classList.toggle('active',b.dataset.page===id)); const titles={center:'Command Center',today:'Today',focus:'Focus Room',spaces:'Spaces',dump:'Brain Dump',insights:'Insights',profile:'Profile',settings:'Settings'}; $('#pageTitle').textContent=titles[id]||'Navo'; if(id==='focus') updateTimer()}
 $$('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page)); document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]'); if(b) page(b.dataset.jump)});
@@ -170,174 +145,293 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootPolish);else bootPolish();
 })();
 
-/* === Navo Cloud Edition — stable sync + product polish === */
+
+/* === Navo Clean Auth + Username Cloud Sync === */
 (function(){
-  const safe=(fn)=>{try{return fn()}catch(e){console.warn('[Navo Cloud]',e)}};
-  const normalizeUrl=(u='')=>String(u).trim().replace(/\/rest\/v1\/?$/,'').replace(/\/$/,'');
-  const cfg=()=>{
-    const c=window.NAVO_CLOUD||{};
-    const legacy=window.NAVO_CONFIG||{};
+  const safe = fn => { try { return fn(); } catch (e) { console.warn('[Navo Auth]', e); } };
+  const normalizeUrl = (u = '') => String(u).trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  const getCfg = () => {
+    const c = window.NAVO_CLOUD || {};
+    const legacy = window.NAVO_CONFIG || {};
     return {
-      supabaseUrl: normalizeUrl(c.supabaseUrl||legacy.SUPABASE_URL||legacy.supabaseUrl||''),
-      supabaseAnonKey: String(c.supabaseAnonKey||legacy.SUPABASE_ANON_KEY||legacy.supabaseAnonKey||'').trim()
+      supabaseUrl: normalizeUrl(c.supabaseUrl || legacy.SUPABASE_URL || legacy.supabaseUrl || ''),
+      supabaseAnonKey: String(c.supabaseAnonKey || legacy.SUPABASE_ANON_KEY || legacy.supabaseAnonKey || '').trim()
     };
   };
-  const configured=()=>!!(cfg().supabaseUrl&&cfg().supabaseAnonKey);
-  const sessionKey='navo_cloud_session_v2';
-  let cloudSession=null, syncing=false, syncTimer=null;
+  const configured = () => !!(getCfg().supabaseUrl && getCfg().supabaseAnonKey);
+  const sessionKey = 'navo_cloud_session_v3';
+  let cloudSession = null;
+  let syncing = false;
+  let syncTimer = null;
 
-  function cleanBrand(){
-    document.title='Navo';
-    document.querySelectorAll('.brand-mark span,.brand-mini b').forEach(el=>{el.textContent='Navo'});
+  function usernameEmail(username){
+    return `${String(username).toLowerCase()}@users.navo.local`;
   }
-  function getSession(){try{return JSON.parse(localStorage.getItem(sessionKey)||localStorage.getItem('navox_cloud_session')||'null')}catch{return null}}
-  function setSession(s){cloudSession=s; if(s)localStorage.setItem(sessionKey,JSON.stringify(s)); else {localStorage.removeItem(sessionKey);localStorage.removeItem('navox_cloud_session')} updateCloudUI();}
-  function badge(){let b=document.querySelector('.cloud-badge'); if(!b){b=document.createElement('div');b.className='cloud-badge calm';b.innerHTML='<i></i><span>Local ready</span>';document.body.appendChild(b)} return b}
-  function setBadge(text,cls='calm'){const b=badge(); b.className='cloud-badge '+cls; b.querySelector('span').textContent=text; const st=document.querySelector('#cloudStatus'); if(st)st.textContent=text; const em=document.querySelector('#cloudEmail'); if(em)em.textContent=cloudSession?.username||state?.profile?.username||user||'غير متصل';}
-  function authHeaders(token){return {'Content-Type':'application/json','apikey':cfg().supabaseAnonKey,'Authorization':'Bearer '+(token||cfg().supabaseAnonKey)}}
-  function friendlyError(e){
-    const m=String(e?.message||e||'');
-    if(m.includes('rate')||m.includes('429'))return 'فيه حد مؤقت على إيميلات Supabase. طفي Confirm email أو انتظر دقيقة وجرب.';
-    if(m.includes('User already registered'))return 'اسم المستخدم موجود. استخدم كلمة المرور الصحيحة.';
-    if(m.includes('Invalid login'))return 'اسم المستخدم أو كلمة المرور غير صحيحة.';
-    if(m.includes('Email not confirmed'))return 'لازم تطفي Confirm email من Supabase أو تؤكد البريد.';
-    if(m.includes('Failed to fetch'))return 'تعذر الاتصال بالسحابة. تأكد من رابط Supabase والإنترنت.';
-    if(m.includes('JWT')||m.includes('apikey'))return 'مفتاح Supabase غير صحيح. استخدم publishable/anon key فقط.';
-    return m || 'تعذر الاتصال بالمزامنة.';
+
+  function validUsername(name){
+    return /^[a-zA-Z0-9._-]{3,32}$/.test(name);
   }
-  async function request(path,opts={}){
-    if(!configured())throw new Error('حط بيانات Supabase في navo-config.js أول');
-    const res=await fetch(cfg().supabaseUrl+path,{...opts,headers:{...authHeaders(cloudSession?.access_token),...(opts.headers||{})}});
-    const txt=await res.text(); let data=null; try{data=txt?JSON.parse(txt):null}catch{data=txt}
-    if(!res.ok)throw new Error(data?.msg||data?.message||txt||('HTTP '+res.status));
+
+  function getMode(){
+    return document.querySelector('#authForm')?.dataset.mode === 'register' ? 'register' : 'login';
+  }
+
+  function setMode(mode){
+    const form = document.querySelector('#authForm');
+    if (!form) return;
+    const isRegister = mode === 'register';
+    form.dataset.mode = isRegister ? 'register' : 'login';
+    document.querySelector('#loginModeBtn')?.classList.toggle('active', !isRegister);
+    document.querySelector('#registerModeBtn')?.classList.toggle('active', isRegister);
+    const title = document.querySelector('#authTitle');
+    const sub = document.querySelector('#authSubtitle');
+    const submit = document.querySelector('#authSubmitBtn');
+    const pass = document.querySelector('#userPass');
+    if (title) title.textContent = isRegister ? 'إنشاء حساب' : 'تسجيل الدخول';
+    if (sub) sub.textContent = isRegister ? 'اختر اسم مستخدم وكلمة مرور. إذا اليوزر موجود بنعلمك.' : 'ادخل باسم المستخدم وكلمة المرور. بدون بريد وبدون تعقيد.';
+    if (submit) submit.textContent = isRegister ? 'إنشاء الحساب' : 'دخول';
+    if (pass) pass.autocomplete = isRegister ? 'new-password' : 'current-password';
+    inline('');
+  }
+
+  function inline(message, type = ''){
+    const el = document.querySelector('#authInlineMsg');
+    if (!el) return;
+    el.textContent = message || '';
+    el.dataset.type = type;
+  }
+
+  function localUsers(){
+    try { return JSON.parse(localStorage.getItem('navo_local_users') || '{}'); } catch { return {}; }
+  }
+  function saveLocalUsers(users){
+    localStorage.setItem('navo_local_users', JSON.stringify(users));
+  }
+
+  function getSession(){
+    try { return JSON.parse(localStorage.getItem(sessionKey) || 'null'); } catch { return null; }
+  }
+  function setSession(session){
+    cloudSession = session;
+    if (session) localStorage.setItem(sessionKey, JSON.stringify(session));
+    else localStorage.removeItem(sessionKey);
+    updateCloudUI();
+  }
+
+  function headers(token){
+    const cfg = getCfg();
+    return { 'Content-Type':'application/json', 'apikey':cfg.supabaseAnonKey, 'Authorization':'Bearer ' + (token || cfg.supabaseAnonKey) };
+  }
+
+  async function request(path, opts = {}, token){
+    const cfg = getCfg();
+    if (!configured()) throw new Error('Supabase غير مفعّل');
+    const res = await fetch(cfg.supabaseUrl + path, { ...opts, headers:{ ...headers(token || cloudSession?.access_token), ...(opts.headers || {}) } });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    if (!res.ok) throw new Error(data?.msg || data?.message || text || ('HTTP ' + res.status));
     return data;
   }
-  function hashHandle(str){let h=2166136261;str=String(str||'user').trim().toLowerCase();for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
-  function usernameToEmail(name){return 'u_'+hashHandle(name)+'@users.navo.app'}
-  async function cloudLogin(email,password,name){
-    setBadge('Signing in...','syncing');
-    try{
-      const data=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
-      if(!data?.access_token) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة.');
-      const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,username:name,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
-      setSession(sess); return sess;
-    }catch(e){
-      throw new Error(friendlyError(e));
-    }
+
+  function friendlyError(err, mode){
+    const m = String(err?.message || err || '');
+    if (m.includes('User already registered') || m.includes('already registered')) return 'اسم المستخدم موجود، جرّب اسم ثاني.';
+    if (m.includes('Invalid login') || m.includes('invalid_credentials')) return 'اسم المستخدم أو كلمة المرور غير صحيحة.';
+    if (m.includes('Email not confirmed')) return 'ادخل Supabase > Authentication > Providers > Email وطف Confirm email.';
+    if (m.includes('Failed to fetch')) return 'تعذر الاتصال بالسحابة. تأكد من رابط Supabase والإنترنت.';
+    if (m.includes('JWT') || m.includes('apikey')) return 'مفتاح Supabase غير صحيح. استخدم anon/public key فقط.';
+    if (m.includes('Supabase غير مفعّل')) return 'السحابة غير مفعلة، بيشتغل الحساب محليًا فقط.';
+    return m || (mode === 'register' ? 'تعذر إنشاء الحساب.' : 'تعذر تسجيل الدخول.');
   }
-  async function cloudRegister(email,password,name){
-    setBadge('Creating account...','syncing');
-    try{
-      const data=await request('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password,data:{name,username:name}})});
-      if(!data?.access_token){
-        throw new Error('تم إنشاء الحساب، لكن Supabase يطلب تأكيد البريد. طفي Confirm email ثم سجل دخول.');
-      }
-      const sess={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||email,username:name,user_id:data.user?.id,expires_at:Date.now()+((data.expires_in||3600)*1000)};
-      setSession(sess); return sess;
-    }catch(e){
-      const msg=String(e?.message||e||'');
-      if(msg.includes('User already registered')||msg.includes('already registered')||msg.includes('already been registered')){
-        throw new Error('اسم المستخدم موجود');
-      }
-      throw new Error(friendlyError(e));
-    }
+
+  async function cloudRegister(username, password){
+    const email = usernameEmail(username);
+    const data = await request('/auth/v1/signup', { method:'POST', body:JSON.stringify({ email, password, data:{ username } }) });
+    if (!data?.access_token) throw new Error('Email not confirmed');
+    return setCloudSessionFromAuth(data, username);
   }
+
+  async function cloudLogin(username, password){
+    const email = usernameEmail(username);
+    const data = await request('/auth/v1/token?grant_type=password', { method:'POST', body:JSON.stringify({ email, password }) });
+    return setCloudSessionFromAuth(data, username);
+  }
+
+  function setCloudSessionFromAuth(data, username){
+    const session = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      email: data.user?.email || usernameEmail(username),
+      username,
+      user_id: data.user?.id,
+      expires_at: Date.now() + ((data.expires_in || 3600) * 1000)
+    };
+    setSession(session);
+    return session;
+  }
+
   async function refreshSession(){
-    if(!configured()||!cloudSession?.refresh_token)return null;
-    if(Date.now() < (cloudSession.expires_at||0)-60000)return cloudSession;
-    const r=await fetch(cfg().supabaseUrl+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:authHeaders(),body:JSON.stringify({refresh_token:cloudSession.refresh_token})});
-    const txt=await r.text(); const j=txt?JSON.parse(txt):null; if(!r.ok)throw new Error(j?.message||txt);
-    const sess={...cloudSession,access_token:j.access_token,refresh_token:j.refresh_token||cloudSession.refresh_token,expires_at:Date.now()+((j.expires_in||3600)*1000)};
-    setSession(sess); return sess;
+    if (!configured() || !cloudSession?.refresh_token) return null;
+    if (Date.now() < (cloudSession.expires_at || 0) - 60000) return cloudSession;
+    const cfg = getCfg();
+    const r = await fetch(cfg.supabaseUrl + '/auth/v1/token?grant_type=refresh_token', {
+      method:'POST', headers:headers(), body:JSON.stringify({ refresh_token:cloudSession.refresh_token })
+    });
+    const text = await r.text();
+    const data = text ? JSON.parse(text) : null;
+    if (!r.ok) throw new Error(data?.message || text);
+    setSession({ ...cloudSession, access_token:data.access_token, refresh_token:data.refresh_token || cloudSession.refresh_token, expires_at:Date.now() + ((data.expires_in || 3600) * 1000) });
+    return cloudSession;
   }
-  function normalizeState(remote,name,email){
-    const base=defaultState(name||email||'Navo User');
-    const merged={...base,...remote};
-    merged.profile={...base.profile,...(remote?.profile||{})};
-    merged.profile.name=merged.profile.name||name||email;
-    merged.profile.email=email||merged.profile.email;
-    merged.spaces=Array.isArray(merged.spaces)&&merged.spaces.length?merged.spaces:base.spaces;
-    merged.tasks=Array.isArray(merged.tasks)?merged.tasks:base.tasks;
-    merged.notes=merged.notes||{}; merged.activity=merged.activity||{}; merged.sessions=merged.sessions||0;
+
+  function normalizeState(remote, username){
+    const base = defaultState(username || 'Navo');
+    const merged = { ...base, ...(remote || {}) };
+    merged.profile = { ...base.profile, ...(remote?.profile || {}) };
+    merged.profile.name = merged.profile.name || username;
+    merged.spaces = Array.isArray(merged.spaces) && merged.spaces.length ? merged.spaces : base.spaces;
+    merged.tasks = Array.isArray(merged.tasks) ? merged.tasks : base.tasks;
+    merged.notes = merged.notes || {};
+    merged.activity = merged.activity || {};
+    merged.sessions = merged.sessions || 0;
     return merged;
   }
+
   async function pullState(){
-    await refreshSession(); if(!cloudSession?.user_id)return null;
-    setBadge('Syncing...','syncing');
-    const rows=await request('/rest/v1/navo_states?user_id=eq.'+encodeURIComponent(cloudSession.user_id)+'&select=data,updated_at&limit=1',{method:'GET'});
-    setBadge('Synced','synced'); return rows?.[0]?.data||null;
+    await refreshSession();
+    if (!cloudSession?.user_id) return null;
+    const rows = await request('/rest/v1/navo_states?user_id=eq.' + encodeURIComponent(cloudSession.user_id) + '&select=data&limit=1', { method:'GET' });
+    return rows?.[0]?.data || null;
   }
+
   async function pushStateNow(){
-    if(!configured()||!cloudSession||!state)return;
-    if(syncing)return; syncing=true;
-    try{
-      setBadge(navigator.onLine?'Syncing...':'Offline','syncing');
+    if (!configured() || !cloudSession || !state || syncing) return;
+    syncing = true;
+    updateCloudUI('Syncing');
+    try {
       await refreshSession();
-      await request('/rest/v1/navo_states',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:cloudSession.user_id,email:cloudSession.email,data:state,updated_at:new Date().toISOString()})});
-      setBadge('Synced','synced');
-    }catch(e){console.warn('[Navo sync]',e); setBadge(navigator.onLine?'Saved locally':'offline','calm');}
-    finally{syncing=false;}
+      await request('/rest/v1/navo_states', {
+        method:'POST',
+        headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+        body:JSON.stringify({ user_id:cloudSession.user_id, email:cloudSession.email, data:state, updated_at:new Date().toISOString() })
+      });
+      updateCloudUI('Synced');
+    } catch(e) {
+      console.warn('[Navo Sync]', e);
+      updateCloudUI('Local saved');
+    } finally {
+      syncing = false;
+    }
   }
-  function queueSync(){if(!cloudSession)return; clearTimeout(syncTimer); syncTimer=setTimeout(pushStateNow,700);}
-  function injectAuth(){
-    const text=document.querySelector('#authSyncText');
-    const dot=document.querySelector('#authSyncDot');
-    if(text) text.textContent=configured()?'الحساب مربوط تلقائيًا':'تجربة محلية';
-    if(dot) dot.className='sync-dot '+(configured()?'on':'local');
+
+  function queueSync(){
+    if (!cloudSession) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushStateNow, 700);
   }
-  function injectProfileChips(){
-    const card=document.querySelector('.cloud-account-card'); if(!card||card.querySelector('.account-chip-row'))return;
-    const row=document.createElement('div'); row.className='account-chip-row';
-    row.innerHTML='<span class="account-chip good">Cloud Save</span><span class="account-chip cyan">Multi-device</span><span class="account-chip">Offline fallback</span><span class="account-chip">Clean UI</span>';
-    card.insertBefore(row,card.children[2]||null);
+
+  function updateCloudUI(status){
+    safe(() => {
+      const shown = status || (cloudSession ? 'Cloud Connected' : (configured() ? 'Cloud Ready' : 'Local Mode'));
+      const cloudStatus = document.querySelector('#cloudStatus');
+      const cloudEmail = document.querySelector('#cloudEmail');
+      const accountMode = document.querySelector('#accountModeMini');
+      const syncMini = document.querySelector('#syncStateMini');
+      if (cloudStatus) cloudStatus.textContent = shown;
+      if (cloudEmail) cloudEmail.textContent = cloudSession?.username || user || 'غير متصل';
+      if (accountMode) accountMode.textContent = cloudSession ? 'Cloud' : 'Local';
+      if (syncMini) syncMini.textContent = shown;
+    });
   }
-  function updateCloudUI(){safe(()=>{
-    const status=cloudSession ? (configured()?'Cloud Connected':'Config missing') : (configured()?'Cloud ready':'Local ready');
-    setBadge(status, cloudSession?'synced':'calm');
-    const email=document.querySelector('#cloudEmail'); if(email)email.textContent=cloudSession?.username||state?.profile?.username||user||'غير متصل'; const am=document.querySelector('#accountModeMini'); if(am)am.textContent=cloudSession?'Cloud':'Local'; const ss=document.querySelector('#syncStateMini'); if(ss)ss.textContent=cloudSession?'Synced':'Ready';
-    const sel=document.querySelector('#mouseEffectSelect'); if(sel&&state?.profile?.mouseEffect)sel.value=state.profile.mouseEffect;
-  });}
-  function applyMouseMode(){const m=state?.profile?.mouseEffect||localStorage.getItem('navo_mouse_effect')||'off'; document.body.classList.remove('mouse-off','mouse-soft','mouse-full'); document.body.classList.add('mouse-'+m); const sel=document.querySelector('#mouseEffectSelect'); if(sel)sel.value=m;}
-  function bindCloudControls(){safe(()=>{
-    const sel=document.querySelector('#mouseEffectSelect'); if(sel&&!sel.dataset.bound){sel.dataset.bound='1'; sel.onchange=()=>{state.profile.mouseEffect=sel.value; localStorage.setItem('navo_mouse_effect',sel.value); applyMouseMode(); save(); toast('تم ضبط تأثير الماوس');};}
-    const sync=document.querySelector('#cloudSyncNow'); if(sync&&!sync.dataset.bound){sync.dataset.bound='1'; sync.onclick=()=>pushStateNow();}
-    const dis=document.querySelector('#cloudDisconnect'); if(dis&&!dis.dataset.bound){dis.dataset.bound='1'; dis.onclick=()=>{setSession(null); setBadge(configured()?'Cloud ready':'Local ready','calm'); toast('تم فصل السحابة');};}
-  });}
-  function patchAuth(){
-    const form=document.querySelector('#authForm'); if(!form||form.dataset.cloudPatched)return; form.dataset.cloudPatched='1';
-    form.addEventListener('submit',async e=>{
-      const name=(document.querySelector('#userName')?.value||'').trim();
-      const pass=(document.querySelector('#userPass')?.value||'').trim();
-      const authMode=form.dataset.mode||'login';
-      const inline=document.querySelector('#authInlineMsg');
-      if(inline) inline.textContent='';
-      if(!name||!pass)return;
-      if(pass.length<6)return;
-      if(!configured())return; // fallback to local original handler
-      e.preventDefault(); e.stopImmediatePropagation();
-      const email=usernameToEmail(name);
-      try{
-        if(authMode==='register') await cloudRegister(email,pass,name);
-        else await cloudLogin(email,pass,name);
-        const remote=await pullState();
-        user=name;
-        state=remote?normalizeState(remote,name,email):normalizeState(null,name,email);
-        state.profile.username=name;
-        localStorage.setItem('navox_current',name);
-        localStorage.setItem(key(),JSON.stringify(state));
-        if(!remote)await pushStateNow();
-        showApp(); applyMouseMode(); setBadge('Synced','synced'); toast(authMode==='register'?'تم إنشاء الحساب':'تم تسجيل الدخول');
-      }catch(err){
-        const msg=friendlyError(err).replace('البريد','اسم المستخدم');
-        if(inline) inline.textContent=msg;
-        toast(msg); setBadge('Cloud ready','calm');
+
+  function patchSave(){
+    safe(() => {
+      if (typeof save === 'function' && !save.__cleanAuth) {
+        const oldSave = save;
+        save = function(){ oldSave(); queueSync(); };
+        save.__cleanAuth = true;
       }
-    },true);
+    });
   }
-  function patchSave(){safe(()=>{
-    if(typeof save==='function'&&!save.__cloud){const old=save; save=function(){old(); queueSync(); applyMouseMode();}; save.__cloud=true;}
-    if(typeof render==='function'&&!render.__cloud){const oldRender=render; render=function(){oldRender(); cleanBrand(); injectProfileChips(); bindCloudControls(); updateCloudUI(); applyMouseMode();}; render.__cloud=true;}
-  });}
-  function bootCloud(){cleanBrand(); injectAuth(); badge(); setSession(getSession()); patchAuth(); patchSave(); bindCloudControls(); applyMouseMode(); window.addEventListener('online',()=>{setBadge('Back online','syncing'); queueSync();}); window.addEventListener('offline',()=>setBadge('Offline','offline')); setTimeout(()=>safe(()=>{cleanBrand(); injectProfileChips(); bindCloudControls(); updateCloudUI(); applyMouseMode(); if(cloudSession&&configured()&&state)queueSync();}),250);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootCloud); else bootCloud();
+
+  async function enterAccount(username, remoteState){
+    user = username;
+    state = normalizeState(remoteState, username);
+    localStorage.setItem('navox_current', username);
+    localStorage.setItem(key(), JSON.stringify(state));
+    showApp();
+    updateCloudUI();
+    if (cloudSession && !remoteState) await pushStateNow();
+  }
+
+  async function submitAuth(event){
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const username = document.querySelector('#userName')?.value.trim();
+    const password = document.querySelector('#userPass')?.value.trim();
+    const mode = getMode();
+
+    if (!validUsername(username)) return inline('اسم المستخدم لازم 3-32 حرف/رقم ويقبل _ . - فقط.', 'error');
+    if (!password || password.length < 6) return inline('كلمة المرور لازم 6 أحرف أو أكثر.', 'error');
+
+    inline(mode === 'register' ? 'جاري إنشاء الحساب...' : 'جاري الدخول...', 'loading');
+
+    try {
+      if (configured()) {
+        if (mode === 'register') await cloudRegister(username, password);
+        else await cloudLogin(username, password);
+        const remote = await pullState();
+        await enterAccount(username, remote);
+        toast(mode === 'register' ? 'تم إنشاء الحساب والمزامنة' : 'تم تسجيل الدخول');
+        return;
+      }
+
+      const users = localUsers();
+      const uname = username.toLowerCase();
+      if (mode === 'register') {
+        if (users[uname]) return inline('اسم المستخدم موجود، اختر اسم ثاني.', 'error');
+        users[uname] = { password, createdAt:new Date().toISOString() };
+        saveLocalUsers(users);
+        await enterAccount(username, null);
+        toast('تم إنشاء حساب محلي');
+      } else {
+        if (!users[uname] || users[uname].password !== password) return inline('اسم المستخدم أو كلمة المرور غير صحيحة.', 'error');
+        load(username);
+        showApp();
+        toast('تم تسجيل الدخول');
+      }
+    } catch (e) {
+      inline(friendlyError(e, mode), 'error');
+      updateCloudUI();
+    }
+  }
+
+  function bindAuth(){
+    const form = document.querySelector('#authForm');
+    if (!form) return;
+    form.onsubmit = null;
+    form.addEventListener('submit', submitAuth, true);
+    document.querySelector('#loginModeBtn')?.addEventListener('click', () => setMode('login'));
+    document.querySelector('#registerModeBtn')?.addEventListener('click', () => setMode('register'));
+    document.querySelector('#demoBtn')?.addEventListener('click', () => {
+      localStorage.setItem('navox_current', 'Mohammed');
+      load('Mohammed');
+      showApp();
+    });
+    document.querySelector('#cloudSyncNow')?.addEventListener('click', pushStateNow);
+    document.querySelector('#cloudDisconnect')?.addEventListener('click', () => { setSession(null); toast('تم فصل السحابة'); });
+    setMode(form.dataset.mode || 'login');
+  }
+
+  function boot(){
+    setSession(getSession());
+    bindAuth();
+    patchSave();
+    updateCloudUI();
+    window.addEventListener('online', queueSync);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
