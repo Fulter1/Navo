@@ -1,1 +1,9 @@
-{"name":"Navo X Cloud Edition","short_name":"Navo X","start_url":"./index.html","display":"standalone","background_color":"#07090f","theme_color":"#07090f","icons":[{"src":"assets/navo-icon.png","sizes":"192x192","type":"image/png"},{"src":"assets/navo-icon.png","sizes":"512x512","type":"image/png"}]}
+/* Navo X Cloud Config
+   1) Create a Supabase project
+   2) Run the SQL in SUPABASE_SETUP.sql
+   3) Paste Project URL + anon public key below
+*/
+window.NAVO_CLOUD = {
+  supabaseUrl: "",
+  supabaseAnonKey: ""
+};

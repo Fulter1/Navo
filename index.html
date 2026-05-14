@@ -1,5 +1,201 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#35d7ff"/><stop offset="1" stop-color="#0b66e4"/></linearGradient></defs>
-<rect width="512" height="512" rx="120" fill="#05070c"/>
-<path d="M128 352V168c0-31 39-45 59-22l137 154V166h60v184c0 31-39 45-59 22L188 218v134h-60z" fill="url(#g)"/>
-</svg>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07090f" />
+  <title>Navo X — Cloud Edition</title>
+  <!-- Navo X Polish Phase: motion, cinematic focus, command palette, mobile polish -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/navo-icon.png" />
+  <link rel="apple-touch-icon" href="assets/navo-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="loader" class="loader">
+    <div class="orb one"></div><div class="orb two"></div>
+    <div class="loader-card">
+      <div class="brand-mark pulse"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo X</span></div>
+      <h1>مساحتك الشخصية للتركيز.</h1>
+      <p id="loaderText">نجهّز Command Center...</p>
+      <div class="loader-line"><i></i></div>
+    </div>
+  </div>
+
+  <div class="bg-grid"></div>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div id="toast" class="toast"></div>
+
+  <section id="auth" class="auth-view">
+    <div class="auth-shell">
+      <div class="auth-copy">
+        <div class="brand-mark"><img src="assets/navo-mark.svg" alt=""><span>Navo X</span></div>
+        <span class="eyebrow">CALM INTELLIGENCE</span>
+        <h1>ركز على الشيء المهم.</h1>
+        <p>نظام شخصي ذكي يرتب يومك، يحمي تركيزك، ويخليك تشوف أولوياتك بدون زحمة.</p>
+        <div class="feature-row"><span>Command Center</span><span>Focus Room</span><span>Smart Spaces</span></div>
+        <div class="glass live-preview">
+          <b>Today Insight</b>
+          <p>جلسة تركيز واحدة الآن تكفي تبدأ اليوم بطريقة واضحة.</p>
+          <div class="mini-orbits"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <form id="authForm" class="glass auth-card">
+        <span class="eyebrow">PRIVATE WORKSPACE</span>
+        <h2>ادخل مساحة Navo</h2>
+        <p>بياناتك محفوظة محليًا على جهازك.</p>
+        <label>اسمك
+          <input id="userName" placeholder="مثال: Mohammed" minlength="2" required>
+        </label>
+        <label>كلمة مرور بسيطة
+          <input id="userPass" type="password" placeholder="••••" minlength="3" required>
+        </label>
+        <button class="primary full" type="submit">دخول / إنشاء مساحة</button>
+        <button id="demoBtn" class="ghost full" type="button">تجربة سريعة</button>
+        <small>تقدر تستخدم نفس الاسم لاحقًا وترجع لمساحتك.</small>
+      </form>
+    </div>
+  </section>
+
+  <main id="app" class="app hidden">
+    <aside class="rail">
+      <div class="brand-mini"><img src="assets/navo-mark.svg" alt=""><b>Navo X</b></div>
+      <nav id="nav">
+        <button class="nav active" data-page="center"><span>⌘</span><b>Center</b></button>
+        <button class="nav" data-page="today"><span>◌</span><b>Today</b></button>
+        <button class="nav" data-page="focus"><span>◉</span><b>Focus</b></button>
+        <button class="nav" data-page="spaces"><span>▦</span><b>Spaces</b></button>
+        <button class="nav" data-page="dump"><span>✎</span><b>Brain</b></button>
+        <button class="nav" data-page="insights"><span>▣</span><b>Insights</b></button>
+        <button class="nav" data-page="profile"><span>♛</span><b>Profile</b></button>
+      </nav>
+      <button id="themeBtn" class="round">☾</button>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div>
+          <small id="dateText">اليوم</small>
+          <h1 id="pageTitle">Command Center</h1>
+        </div>
+        <div class="top-actions">
+          <button id="openCmd" class="ghost">⌘K</button>
+          <button id="quickAdd" class="primary">＋ مهمة</button>
+          <button id="logout" class="ghost">خروج</button>
+        </div>
+      </header>
+
+      <section id="center" class="page active">
+        <div class="center-layout">
+          <article class="glass hero-card span-2">
+            <span class="eyebrow">CURRENT SIGNAL</span>
+            <h2 id="mainGreeting">هدوء أكثر، إنجاز أوضح.</h2>
+            <p id="aiInsight">Navo يراقب يومك محليًا ويقترح عليك الخطوة الأنسب.</p>
+            <div class="hero-actions">
+              <button id="startFocusHero" class="primary big">ابدأ Focus Room</button>
+              <button data-jump="dump" class="ghost big">Brain Dump</button>
+            </div>
+          </article>
+          <article class="glass today-score">
+            <span>Today Progress</span>
+            <strong id="todayPct">0%</strong>
+            <div class="ring"><i id="ringFill"></i></div>
+          </article>
+          <article class="glass focus-target span-2">
+            <span class="eyebrow">ONE THING</span>
+            <h3 id="oneThing">أضف أهم مهمة اليوم</h3>
+            <p id="oneThingMeta">مهمة واحدة فقط تظهر هنا.</p>
+          </article>
+          <article class="glass stats-card"><span>Streak</span><b id="streak">1</b><small>days</small></article>
+          <article class="glass stats-card"><span>XP</span><b id="xp">0</b><small id="rank">Rookie</small></article>
+          <article class="glass stats-card"><span>Focus</span><b id="sessions">0</b><small>sessions</small></article>
+          <article class="glass next-card span-2">
+            <div class="section-head"><h3>Next Tasks</h3><button data-jump="today" class="link">Today</button></div>
+            <div id="nextTasks" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="today" class="page">
+        <div class="today-layout">
+          <article class="glass day-panel">
+            <span class="eyebrow">TODAY FLOW</span>
+            <h2 id="todayTitle">خطة اليوم</h2>
+            <p>اختر المهم، ثبّت الأولوية، وخل اليوم واضح.</p>
+            <div class="day-controls"><button id="addTaskToday" class="primary">＋ مهمة</button><button id="sortTasks" class="ghost">ترتيب ذكي</button></div>
+          </article>
+          <article class="glass task-panel">
+            <div class="task-tools"><input id="taskSearch" placeholder="ابحث في مهام اليوم..."><select id="taskFilter"><option value="all">الكل</option><option value="open">المعلقة</option><option value="done">المنجزة</option><option value="high">عالية</option></select></div>
+            <div id="taskList" class="list"></div>
+          </article>
+          <article class="glass notes-panel">
+            <h3>ملاحظات اليوم</h3>
+            <textarea id="dailyNote" placeholder="اكتب ملاحظة سريعة..."></textarea>
+          </article>
+        </div>
+      </section>
+
+      <section id="focus" class="page">
+        <div id="focusRoom" class="focus-room glass">
+          <div class="focus-bg"><i></i><i></i><i></i></div>
+          <button id="fullBtn" class="round full-btn">⛶</button>
+          <span class="eyebrow">FOCUS ROOM</span>
+          <h2 id="focusTask">مهمة واحدة فقط</h2>
+          <div class="timer-ring"><svg viewBox="0 0 260 260"><circle cx="130" cy="130" r="112"></circle><circle id="timerCircle" cx="130" cy="130" r="112"></circle></svg><strong id="timer">25:00</strong></div>
+          <p id="focusQuote">كل ما تحتاجه الآن هو بداية هادئة.</p>
+          <div class="focus-controls"><button id="startTimer" class="primary">ابدأ</button><button id="pauseTimer" class="ghost">إيقاف</button><button id="resetTimer" class="ghost">إعادة</button></div>
+          <div class="sound-row"><button class="sound" data-sound="rain">Rain</button><button class="sound" data-sound="space">Space</button><button class="sound" data-sound="cafe">Cafe</button><button class="sound" data-sound="none">Off</button></div>
+        </div>
+      </section>
+
+      <section id="spaces" class="page">
+        <div class="section-head page-head"><div><span class="eyebrow">SMART SPACES</span><h2>مساحاتك</h2></div><button id="addSpace" class="primary">＋ Space</button></div>
+        <div id="spacesGrid" class="spaces-grid"></div>
+      </section>
+
+      <section id="dump" class="page">
+        <div class="dump-layout">
+          <article class="glass dump-card">
+            <span class="eyebrow">BRAIN DUMP</span>
+            <h2>فضفض كل شيء هنا</h2>
+            <p>اكتب أفكارك، Navo يحولها لمهام مرتبة محليًا.</p>
+            <textarea id="dumpInput" placeholder="مثال: لازم أخلص واجب الجامعة، أراجع C++، أعدل مشروع الموقع..."></textarea>
+            <button id="parseDump" class="primary full">حوّلها لمهام</button>
+          </article>
+          <article class="glass dump-result"><h3>المهام المقترحة</h3><div id="dumpResult" class="list"></div></article>
+        </div>
+      </section>
+
+      <section id="insights" class="page">
+        <div class="insights-layout">
+          <article class="glass insight-main"><span class="eyebrow">INSIGHTS</span><h2>تحليلك الأسبوعي</h2><p id="weeklyText">ابدأ بإنجاز مهام وجلسات تركيز عشان تظهر التحليلات.</p><div id="heatmap" class="heatmap"></div></article>
+          <article class="glass stats-card"><span>Completion</span><b id="completionRate">0%</b><small>all tasks</small></article>
+          <article class="glass stats-card"><span>Best Space</span><b id="bestSpace">—</b><small>most tasks</small></article>
+          <article class="glass stats-card"><span>Night Mode</span><b id="nightScore">Calm</b><small>focus style</small></article>
+        </div>
+      </section>
+
+      <section id="profile" class="page">
+        <div class="profile-layout">
+          <article class="glass profile-card"><div id="avatar" class="avatar">M</div><h2 id="profileName">Mohammed</h2><p id="profileBio">Personal Operating System</p><div class="level"><span id="levelLabel">Level 1</span><i><em id="levelFill"></em></i></div></article>
+          <article class="glass settings-card"><h3>إعدادات سريعة</h3><label>اسم العرض<input id="displayName"></label><label>نبذة<textarea id="bioInput"></textarea></label><div class="two"><label>Focus minutes<input id="focusMinutes" type="number" min="5" max="90"></label><label>Break minutes<input id="breakMinutes" type="number" min="1" max="30"></label></div><button id="saveProfile" class="primary full">حفظ</button></article>
+          <article class="glass settings-card cloud-account-card"><h3>الحساب والمزامنة</h3><p class="muted-line">Cloud Sync يحفظ مستواك و XP والمهام والمساحات على حسابك، وتقدر تدخل من أي جهاز.</p><div class="cloud-status-row"><span id="cloudStatus">Local Mode</span><b id="cloudEmail">غير متصل</b></div><div class="two"><button id="cloudSyncNow" class="ghost" type="button">مزامنة الآن</button><button id="cloudDisconnect" class="ghost" type="button">فصل السحابة</button></div><label>تأثير الماوس<select id="mouseEffectSelect"><option value="off">Off — إيقاف</option><option value="soft" selected>Soft — خفيف</option><option value="full">Full — كامل</option></select></label></article>
+        </div>
+      </section>
+    </section>
+
+    <nav class="mobile-nav">
+      <button class="mnav active" data-page="center">⌘<span>Center</span></button><button class="mnav" data-page="today">◌<span>Today</span></button><button class="mnav" data-page="focus">◉<span>Focus</span></button><button class="mnav" data-page="spaces">▦<span>Spaces</span></button><button class="mnav" data-page="dump">✎<span>Brain</span></button>
+    </nav>
+  </main>
+
+  <dialog id="taskDialog"><form id="taskForm" method="dialog" class="modal glass"><button class="close" type="button" id="closeTask">×</button><h2>مهمة جديدة</h2><label>العنوان<input id="taskTitle" required placeholder="وش بتنجز؟"></label><div class="two"><label>Space<select id="taskSpace"></select></label><label>الأولوية<select id="taskPriority"><option>High</option><option selected>Medium</option><option>Low</option></select></label></div><label>التاريخ<input id="taskDate" type="date"></label><button class="primary full">إضافة</button></form></dialog>
+  <div id="cmd" class="cmd hidden"><div class="cmd-box glass"><input id="cmdInput" placeholder="اكتب أمر: focus, task, brain, insights"><div id="cmdList"></div></div></div>
+  <script src="navo-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
