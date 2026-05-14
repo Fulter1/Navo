@@ -1,15 +1,9 @@
-{
-  "name": "Navo",
-  "short_name": "Navo",
-  "description": "Personal workspace for tasks, focus and spaces.",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#07090f",
-  "theme_color": "#07090f",
-  "dir": "rtl",
-  "lang": "ar",
-  "icons": [
-    { "src": "assets/navo-icon.png", "sizes": "274x278", "type": "image/png", "purpose": "any maskable" }
-  ]
-}
+window.NAVO_CLOUD = {
+  supabaseUrl: "",
+  supabaseAnonKey: ""
+};
+
+window.NAVO_CONFIG = window.NAVO_CONFIG || {
+  SUPABASE_URL: window.NAVO_CLOUD.supabaseUrl,
+  SUPABASE_ANON_KEY: window.NAVO_CLOUD.supabaseAnonKey
+};
