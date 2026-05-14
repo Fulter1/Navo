@@ -1,1 +1,4 @@
-{"name":"Navo","short_name":"Navo","start_url":"./index.html","display":"standalone","background_color":"#07090f","theme_color":"#07090f","icons":[{"src":"assets/navo-icon.png","sizes":"192x192","type":"image/png"},{"src":"assets/navo-icon.png","sizes":"512x512","type":"image/png"}]}
+window.NAVO_CLOUD = {
+  supabaseUrl: "",
+  supabaseAnonKey: ""
+};
