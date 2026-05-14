@@ -45,11 +45,16 @@
         </div>
       </aside>
 
-      <form id="authForm" class="glass auth-card auth-card-v3">
-        <div class="auth-card-head">
-          <span class="eyebrow">WELCOME BACK</span>
-          <h2>تسجيل الدخول</h2>
-          <p>استخدم اسم المستخدم وكلمة المرور فقط.</p>
+      <form id="authForm" class="glass auth-card auth-card-v3 clean-auth-card" data-mode="login">
+        <div class="auth-card-head clean-auth-head">
+          <span class="eyebrow" id="authEyebrow">WELCOME BACK</span>
+          <h2 id="authTitle">تسجيل الدخول</h2>
+          <p id="authSubtitle">ادخل باسم المستخدم وكلمة المرور. حسابك محفوظ ومزامن تلقائيًا.</p>
+        </div>
+
+        <div class="auth-tabs-clean" role="tablist" aria-label="اختيار نوع الدخول">
+          <button id="loginModeBtn" class="active" type="button">تسجيل دخول</button>
+          <button id="registerModeBtn" type="button">إنشاء حساب</button>
         </div>
 
         <label class="field">اسم المستخدم
@@ -59,15 +64,11 @@
           <div class="input-wrap"><span>●</span><input id="userPass" type="password" placeholder="كلمة المرور" minlength="6" autocomplete="current-password" required></div>
         </label>
 
-        <div class="auth-sync-row">
-          <div><b>مزامنة الحساب</b><small id="authSyncText">Cloud جاهز إذا Supabase مضبوط</small></div>
-          <span id="authSyncDot" class="sync-dot"></span>
-        </div>
+        <div id="authHint" class="auth-hint clean-auth-hint">الحساب مربوط تلقائيًا بالسحابة. ما يحتاج بريد.</div>
+        <p id="authInlineMsg" class="auth-inline-msg" aria-live="polite"></p>
 
-        <button class="primary full auth-submit" type="submit">دخول / إنشاء حساب</button>
+        <button id="authSubmitBtn" class="primary full auth-submit" type="submit">دخول</button>
         <button id="demoBtn" class="ghost full" type="button">تجربة محلية سريعة</button>
-
-        <small class="auth-note">ما تحتاج بريد. Navo يحوّل اسم المستخدم لحساب آمن بالخلفية للمزامنة فقط.</small>
       </form>
     </div>
   </section>
