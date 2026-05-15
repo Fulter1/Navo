@@ -1,5 +1,0 @@
-/* Motion safety and performance utilities */
-body.performance-low .glass{backdrop-filter:blur(8px)!important}
-body.performance-low .launch-orbit,body.performance-low .hero-card:after{display:none!important}
-body.performance-low *{animation-duration:.01ms!important;transition-duration:.08s!important}
-@media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
