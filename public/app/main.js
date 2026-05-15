@@ -9,9 +9,14 @@ let tasks = [];
 let page = "home";
 
 let timer = null;
-let focusLeft = 25 * 60;
-let focusTotal = 25 * 60;
+let focusLeft = Number(localStorage.getItem("navo_focus_minutes") || 25) * 60;
+let focusTotal = Number(localStorage.getItem("navo_focus_minutes") || 25) * 60;
 let focusRunning = false;
+let focusModeType = "focus";
+let focusBreakMinutes = Number(localStorage.getItem("navo_break_minutes") || 5);
+let focusSessionsTarget = Number(localStorage.getItem("navo_focus_sessions") || 4);
+let focusSessionDone = Number(localStorage.getItem("navo_focus_done") || 0);
+let focusStudyFullscreen = false;
 let cleanFocusFullscreen = false;
 
 const localSpacesKey = "navo_local_spaces";
@@ -273,53 +278,104 @@ function taskList(list){
 }
 
 function renderFocus(){
+  const totalSeconds = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+  const passed = Math.max(0, totalSeconds - focusLeft);
+  const progress = totalSeconds > 0 ? Math.min(100, Math.round((passed / totalSeconds) * 100)) : 0;
+  const isBreak = focusModeType === "break";
+  const stageTitle = isBreak ? "وقت بريك خفيف" : "جلسة مذاكرة عميقة";
+  const stageSub = isBreak ? "قوم، اشرب موية، وخذ نفس. لا تفتح مشتتات." : "حط الجوال بعيد، ركز على شيء واحد فقط، والباقي بعد الجلسة.";
+  const stateText = isBreak ? "BREAK" : "STUDY";
+
   $("#focusPage").innerHTML = `
-    <div class="focus-shell">
-      <section id="focusRoom" class="focus-room glass ${focusRunning ? "running" : ""} ${cleanFocusFullscreen ? "focus-fullscreen" : ""}">
-        <div>
-          <span class="chip">FOCUS MODE</span>
-          <h2>جلسة تركيز هادئة</h2>
-          <p class="muted">كل جلسة مكتملة تضيف +75 XP.</p>
-          <div class="timer"><b id="timerText">${format(focusLeft)}</b></div>
-          <div class="focus-controls">
+    <div class="focus-pro">
+      <section class="focus-stage glass ${focusRunning ? "running" : ""} ${isBreak ? "break-mode" : ""} ${focusStudyFullscreen ? "focus-fullscreen" : ""}">
+        <div class="focus-center">
+          <span class="chip focus-state-chip">${stateText} MODE</span>
+          <h2 class="focus-title">${stageTitle}</h2>
+          <p class="focus-sub">${stageSub}</p>
+
+          <div class="focus-ring-pro" style="--progress:${progress}">
+            <div class="focus-time">
+              <b id="timerText">${format(focusLeft)}</b>
+              <span>${isBreak ? "استراحة" : "تركيز"} · ${progress}%</span>
+            </div>
+          </div>
+
+          <div class="focus-buttons">
             <button class="btn primary" data-action="toggleFocus">${focusRunning ? "إيقاف مؤقت" : "ابدأ"}</button>
             <button class="btn ghost" data-action="resetFocus">إعادة</button>
-            <button class="btn ghost" data-action="fullFocus">تكبير الشاشة</button>
+            <button class="btn ghost" data-action="skipFocus">${isBreak ? "تخطي البريك" : "إنهاء الجلسة"}</button>
+            <button class="btn ghost" data-action="fullStudyFocus">${focusStudyFullscreen ? "تصغير" : "تكبير الشاشة"}</button>
           </div>
         </div>
       </section>
 
-      <aside class="panel glass">
-        <h2>إعداد الجلسة</h2>
-        <p class="muted">اختر مدة التركيز ثم اضغط ابدأ.</p>
-        <label>مدة التركيز
-          <select id="focusMinutes">
-            <option value="15">15 دقيقة</option>
-            <option value="25">25 دقيقة</option>
-            <option value="45">45 دقيقة</option>
-            <option value="60">60 دقيقة</option>
-          </select>
-        </label>
+      <aside class="focus-side-pro glass">
+        <span class="chip">STUDY SETUP</span>
+        <h2>إعداد التركيز</h2>
+        <p class="muted">حدد وقت المذاكرة والبريك وعدد الجلسات.</p>
 
-        <div class="data-box">
-          <b>إحصائياتك</b><br>
-          الجلسات: ${me.focusSessions}<br>
-          الدقائق: ${me.focusMinutes}m<br>
-          XP: ${me.xp}
+        <div class="focus-controls-grid">
+          <div class="focus-control-card"><label>وقت التركيز
+            <select id="focusMinutes"><option value="15">15 دقيقة</option><option value="25">25 دقيقة</option><option value="45">45 دقيقة</option><option value="60">60 دقيقة</option><option value="90">90 دقيقة</option></select>
+          </label></div>
+
+          <div class="focus-control-card"><label>وقت البريك
+            <select id="breakMinutes"><option value="5">5 دقائق</option><option value="10">10 دقائق</option><option value="15">15 دقيقة</option><option value="20">20 دقيقة</option></select>
+          </label></div>
+
+          <div class="focus-control-card"><label>عدد الجلسات
+            <select id="sessionTarget"><option value="2">جلستين</option><option value="3">3 جلسات</option><option value="4">4 جلسات</option><option value="6">6 جلسات</option></select>
+          </label></div>
+
+          <div class="focus-control-card"><label>الوضع
+            <select id="focusModeSelect"><option value="focus">مذاكرة</option><option value="break">بريك</option></select>
+          </label></div>
         </div>
+
+        <div class="focus-stat-row">
+          <div class="focus-stat-mini"><b>${focusSessionDone}/${focusSessionsTarget}</b><span class="muted">جلسات اليوم</span></div>
+          <div class="focus-stat-mini"><b>${me.focusMinutes}m</b><span class="muted">إجمالي التركيز</span></div>
+        </div>
+
+        <div class="focus-tips"><b>نصيحة:</b><br>قبل ما تبدأ، افتح المادة فقط، اقفل الإشعارات، وحدد صفحة أو محاضرة واحدة.</div>
       </aside>
     </div>
   `;
+
   $("#focusMinutes").value = String(focusTotal / 60);
+  $("#breakMinutes").value = String(focusBreakMinutes);
+  $("#sessionTarget").value = String(focusSessionsTarget);
+  $("#focusModeSelect").value = focusModeType;
+
   $("#focusMinutes").onchange = () => {
     focusTotal = Number($("#focusMinutes").value) * 60;
-    focusLeft = focusTotal;
+    localStorage.setItem("navo_focus_minutes", String(focusTotal / 60));
+    if(focusModeType === "focus"){ focusLeft = focusTotal; focusRunning = false; clearInterval(timer); timer = null; renderFocus(); }
+  };
+
+  $("#breakMinutes").onchange = () => {
+    focusBreakMinutes = Number($("#breakMinutes").value);
+    localStorage.setItem("navo_break_minutes", String(focusBreakMinutes));
+    if(focusModeType === "break"){ focusLeft = focusBreakMinutes * 60; focusRunning = false; clearInterval(timer); timer = null; renderFocus(); }
+  };
+
+  $("#sessionTarget").onchange = () => {
+    focusSessionsTarget = Number($("#sessionTarget").value);
+    localStorage.setItem("navo_focus_sessions", String(focusSessionsTarget));
+    renderFocus();
+  };
+
+  $("#focusModeSelect").onchange = () => {
+    focusModeType = $("#focusModeSelect").value;
+    focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
     focusRunning = false;
     clearInterval(timer);
     timer = null;
     renderFocus();
   };
-  document.body.classList.toggle("full-focus-active", cleanFocusFullscreen);
+
+  document.body.classList.toggle("full-focus-active", focusStudyFullscreen);
   bindActions($("#focusPage"));
 }
 
@@ -561,18 +617,26 @@ function toggleFocus(){
     clearInterval(timer);
     timer = null;
     focusRunning = false;
+    if(typeof cleanNotify === "function") cleanNotify("إيقاف مؤقت", "تقدر تكمل الجلسة بعد شوي.", "info");
+    else toast("تم الإيقاف المؤقت");
     renderFocus();
     return;
   }
 
   focusRunning = true;
+  if(typeof cleanNotify === "function") cleanNotify(focusModeType === "break" ? "بدأ البريك" : "بدأت المذاكرة", focusModeType === "break" ? "خذ نفس بدون مشتتات." : "ركز على مهمة وحدة فقط.", "focus");
+
   timer = setInterval(async () => {
     focusLeft--;
     const text = $("#timerText");
     if(text) text.textContent = format(focusLeft);
 
     if(focusLeft <= 0){
-      await completeFocus();
+      if(focusModeType === "focus"){
+        await completeFocus();
+      }else{
+        completeBreak();
+      }
     }
   }, 1000);
 
@@ -583,8 +647,10 @@ function resetFocus(){
   clearInterval(timer);
   timer = null;
   focusRunning = false;
-  focusLeft = focusTotal;
+  focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
   renderFocus();
+  if(typeof cleanNotify === "function") cleanNotify("تمت الإعادة", "رجع المؤقت للبداية.", "info");
+  else toast("تمت إعادة الجلسة");
 }
 
 async function completeFocus(){
@@ -597,13 +663,59 @@ async function completeFocus(){
       method:"POST",
       body: JSON.stringify({ minutes: focusTotal / 60 })
     });
+
     me = data.user;
-    focusLeft = focusTotal;
+    focusSessionDone += 1;
+    localStorage.setItem("navo_focus_done", String(focusSessionDone));
+
+    if(typeof cleanCelebrate === "function") cleanCelebrate();
+    if(typeof cleanNotify === "function") cleanNotify("جلسة مكتملة", "ممتاز! خذ بريك قصير الآن +75XP.", "success");
+
+    if(focusSessionDone >= focusSessionsTarget){
+      focusModeType = "focus";
+      focusLeft = focusTotal;
+      focusStudyFullscreen = false;
+      document.body.classList.remove("full-focus-active");
+      if(typeof cleanNotify === "function") cleanNotify("أنهيت هدف اليوم", "خلصت عدد الجلسات المحدد. فخورين فيك!", "success");
+    }else{
+      focusModeType = "break";
+      focusLeft = focusBreakMinutes * 60;
+    }
+
     await loadMe();
-    cleanFocusFullscreen = false; document.body.classList.remove("full-focus-active"); cleanNotify("جلسة مكتملة", "ممتاز! حصلت على +75XP", "success"); cleanCelebrate();
+    setPage("focus");
   }catch{
-    toast("صار خطأ في حفظ التركيز");
+    if(typeof cleanNotify === "function") cleanNotify("خطأ", "صار خطأ في حفظ الجلسة.", "warning");
+    else toast("صار خطأ في حفظ التركيز");
   }
+}
+
+
+function completeBreak(){
+  clearInterval(timer);
+  timer = null;
+  focusRunning = false;
+  focusModeType = "focus";
+  focusLeft = focusTotal;
+  if(typeof cleanNotify === "function") cleanNotify("انتهى البريك", "ارجع لجلسة المذاكرة التالية.", "focus");
+  else toast("انتهى البريك");
+  renderFocus();
+}
+
+function skipFocusStep(){
+  if(focusModeType === "focus"){
+    completeFocus();
+  }else{
+    completeBreak();
+  }
+}
+
+function toggleStudyFullscreen(){
+  focusStudyFullscreen = !focusStudyFullscreen;
+  document.body.classList.toggle("full-focus-active", focusStudyFullscreen);
+  renderFocus();
+  if(typeof cleanNotify === "function") cleanNotify(focusStudyFullscreen ? "تركيز كامل" : "رجوع للواجهة", focusStudyFullscreen ? "الشاشة الآن للمذاكرة فقط." : "تم تصغير وضع التركيز.", "focus");
+  else toast(focusStudyFullscreen ? "تركيز كامل" : "رجوع للواجهة");
 }
 
 function openMenu(){
