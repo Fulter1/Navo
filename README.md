@@ -1,29 +1,36 @@
-# Navo Ready Edition
+# Navo v8 CleanFix
 
-مشروع Navo جاهز بعد إعادة التصميم:
-
-- Dark Calm Luxury UI
-- Login/Register باسم مستخدم وكلمة مرور
-- Hash محلي لكلمة المرور
-- Dashboard مطور
-- Focus Room سينمائي
-- Tasks + Spaces + Brain Dump + Insights
-- إصلاح overflow في الجوال
-- Bottom navigation للجوال
-- Command Palette بـ Ctrl/Cmd + K
-- Theme engine: Dark / Midnight / Frost
-- Motion settings
-- PWA manifest + service worker
+نسخة تنظيف فعلية للمشروع بدون طبقات ترقيع متداخلة.
 
 ## التشغيل
-افتح `index.html` مباشرة، أو شغله عبر Live Server في VS Code.
+افتح `index.html` عبر Live Server.
 
-## الملفات المهمة
-- `index.html`
-- `style.css`
-- `app.js`
-- `navo-config.js`
-- `SUPABASE_SETUP.sql`
+## تم حل المشاكل
+- إعادة كتابة CSS كطبقة واحدة نظيفة بدل v6/v7 المتداخلة.
+- تثبيت القائمة يمين الشاشة في الديسكتوب مع تصغير/تكبير ثابت ومحفوظ.
+- تحسين القائمة في الجوال كـ drawer + bottom nav بدون ضغط المحتوى.
+- إصلاح Esc في وضع التركيز: يخرج من Deep Focus بدل ما يدخل/يطلع بعشوائية.
+- ترحيب تحفيزي مدمج بعد تسجيل الدخول وليس كطبقة منفصلة buggy.
+- إعدادات جديدة منظمة: الثيم، الأداء، الإشعارات، البيانات.
+- تحسين الوضع الليلي والنهاري بتوكنز واحدة.
+- تقليل blur/shadows والـ animations لتحسين السلاسة.
+- إزالة طبقة v7 Polish Pack المنفصلة التي كانت تسبب تداخلات.
 
-## ملاحظة
-السحابة اختيارية. لو ما ركبت Supabase التطبيق يشتغل Local-first بدون مشاكل.
+## الملفات
+- index.html
+- styles/main.css
+- app/main.js
+- config/navo-config.js
+- assets/navo-mark.svg
+- assets/navo-icon.png
+- manifest.webmanifest
+- sw.js
+
+
+## تحديث Navo v9 Premium UI
+- تحسين شامل للداشبورد: Command Center، مؤشرات فخمة، Focus preview، Spaces preview.
+- تحسين وضع التركيز: شاشة أهدأ، مؤثرات أخف، أزرار أوضح، وإعدادات جانبية مرتبة.
+- إعدادات أفخم: Hero خاص، بطاقات مرتبة، تحكم بالإشعارات والصوت ومستوى الصوت.
+- تغيير شكل الإشعارات للكمبيوتر والجوال مع نغمات قابلة للتغيير أو الإيقاف.
+- إخفاء زر الثلاث شرطات من الديسكتوب وإظهاره للجوال فقط.
+- ضبط تجربة الجوال: drawer جانبي للقائمة وزر علوي واضح مع bottom nav ثابت بدون تضارب.
