@@ -143,7 +143,10 @@
     if (!state.spaces?.length) state.spaces = structuredClone(defaultSpaces);
     if (remember) writeJson(STORAGE_SESSION, { username, at: Date.now() });
     authView.classList.add('hidden'); appView.classList.remove('hidden');
+    if (localStorage.getItem('navo.sidebar.collapsed') === '1') appView.classList.add('collapsed');
+    $('#collapseSidebar').textContent = appView.classList.contains('collapsed') ? 'تكبير القائمة' : 'تصغير القائمة';
     applySettings(); renderAll(); toast(`أهلًا ${state.profile.displayName || username}`);
+    showWelcome();
   }
   function logout() {
     saveState();
@@ -164,7 +167,11 @@
   function bindShell() {
     $('#sideNav').addEventListener('click', onNavClick);
     $('#mobileNav').addEventListener('click', onNavClick);
-    $('#collapseSidebar').addEventListener('click', () => appView.classList.toggle('collapsed'));
+    $('#collapseSidebar').addEventListener('click', () => {
+      appView.classList.toggle('collapsed');
+      $('#collapseSidebar').textContent = appView.classList.contains('collapsed') ? 'تكبير القائمة' : 'تصغير القائمة';
+      localStorage.setItem('navo.sidebar.collapsed', appView.classList.contains('collapsed') ? '1' : '0');
+    });
     $('#mobileMenu').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
     $('#themeToggle').addEventListener('click', () => { state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark'; applySettings(); saveState(); });
     $('#quickTask').addEventListener('click', () => openTaskDialog());
@@ -177,7 +184,11 @@
     $('#commandInput').addEventListener('input', renderCommandList);
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCommand(); }
-      if (e.key === 'Escape') { closeCommand(); $('#sidebar').classList.remove('open'); if (currentPage === 'focus') toggleDeepFocus(); }
+      if (e.key === 'Escape') {
+        closeCommand();
+        $('#sidebar').classList.remove('open');
+        if (document.body.classList.contains('deep-focus')) document.body.classList.remove('deep-focus');
+      }
       if (currentPage === 'focus' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
         if (e.code === 'Space') { e.preventDefault(); focusRunning ? pauseFocus() : startFocus(); }
         if (e.key === 'Enter') startFocus();
@@ -272,7 +283,7 @@
           <p class="chip">FOCUS ROOM</p>
           <h2 id="focusTaskText">${target ? escapeHtml(target.title) : 'مهمة واحدة فقط'}</h2>
           <p>Space للتشغيل/الإيقاف • Enter للتشغيل • Esc للوضع العميق</p>
-          <div class="timer-ring"><strong id="focusClock">${formatTime(focusLeft)}</strong><small>جلسة تركيز</small></div>
+          <div class="timer-ring"><strong id="focusClock">${formatTime(focusLeft)}</strong><small>جلسة تركيز</small><i class="focus-orbit" aria-hidden="true"></i></div>
           <div class="focus-controls"><button class="btn primary" data-action="focus-start">ابدأ</button><button class="btn ghost" data-action="focus-pause">إيقاف</button><button class="btn ghost" data-action="focus-reset">إعادة</button><button class="btn ghost" data-action="deep-focus">Deep Mode</button></div>
           <div class="sound-row"><button class="${state.settings.sound==='none'?'active':''}" data-action="sound" data-sound="none">Off</button><button class="${state.settings.sound==='rain'?'active':''}" data-action="sound" data-sound="rain">Rain</button><button class="${state.settings.sound==='cafe'?'active':''}" data-action="sound" data-sound="cafe">Cafe</button><button class="${state.settings.sound==='space'?'active':''}" data-action="sound" data-sound="space">Space</button></div>
         </section>
@@ -300,7 +311,7 @@
     $('#profile').onclick = handleAction;
   }
   function renderSettings() {
-    $('#settings').innerHTML = `<div class="section-head"><div><p class="chip">SETTINGS</p><h2>الإعدادات</h2></div><button class="btn danger" data-action="logout">تسجيل خروج</button></div><div class="grid settings-grid"><article class="settings-card glass-card"><h3>الثيم والهوية</h3><button class="btn ghost full" data-action="toggle-theme">تبديل الوضع الليلي / النهاري</button><label>لون الهوية<div class="color-picks"><button style="--c1:#35d7ff;--c2:#0b66e4" data-action="accent" data-a="#35d7ff" data-b="#0b66e4"></button><button style="--c1:#ff8a3d;--c2:#ff3d81" data-action="accent" data-a="#ff8a3d" data-b="#ff3d81"></button><button style="--c1:#39d98a;--c2:#13a89e" data-action="accent" data-a="#39d98a" data-b="#13a89e"></button><button style="--c1:#a78bfa;--c2:#6d5dfc" data-action="accent" data-a="#a78bfa" data-b="#6d5dfc"></button></div></label></article><article class="settings-card glass-card"><h3>الأداء</h3><label>وضع الرسوم<select id="graphicsMode"><option value="auto">تلقائي</option><option value="full">كامل</option><option value="low">خفيف</option></select></label><p class="muted">خفف الرسوم لو الجهاز يعلق أو فيه تقطيع.</p></article><article class="settings-card glass-card"><h3>ربط البيانات</h3><div class="data-box"><b>المستخدم الحالي:</b> @${escapeHtml(currentUser)}<br><b>طريقة الحفظ:</b> Local-first لكل مستخدم<br><b>Cloud:</b> Supabase جاهز في config لاحقًا</div><button class="btn ghost full" data-action="export-data">تصدير البيانات</button><label class="btn ghost full" style="margin-top:10px;text-align:center">استيراد البيانات<input id="importData" type="file" accept="application/json" hidden></label></article><article class="settings-card glass-card"><h3>البيانات الخطرة</h3><p class="muted">استخدمها فقط لو تبي تبدأ من جديد.</p><button class="btn danger full" data-action="reset-user">تصفير بيانات المستخدم</button></article></div>`;
+    $('#settings').innerHTML = `<div class="section-head"><div><p class="chip">SETTINGS</p><h2>الإعدادات</h2></div><button class="btn danger" data-action="logout">تسجيل خروج</button></div><div class="grid settings-grid"><article class="settings-card glass-card"><h3>الثيم والهوية</h3><p class="muted">ثيم مصمم للوضعين بدون تضارب أو ألوان متعبة.</p><button class="btn ghost full" data-action="toggle-theme">تبديل الوضع الليلي / النهاري</button><label>لون الهوية<div class="color-picks"><button title="Navo Blue" style="--c1:#35d7ff;--c2:#0b66e4" data-action="accent" data-a="#35d7ff" data-b="#0b66e4"></button><button title="Sunset" style="--c1:#ff8a3d;--c2:#ff3d81" data-action="accent" data-a="#ff8a3d" data-b="#ff3d81"></button><button title="Mint" style="--c1:#39d98a;--c2:#13a89e" data-action="accent" data-a="#39d98a" data-b="#13a89e"></button><button title="Violet" style="--c1:#a78bfa;--c2:#6d5dfc" data-action="accent" data-a="#a78bfa" data-b="#6d5dfc"></button></div></label></article><article class="settings-card glass-card"><h3>الأداء والسلاسة</h3><label>وضع الرسوم<select id="graphicsMode"><option value="auto">تلقائي</option><option value="full">كامل</option><option value="low">خفيف</option></select></label><p class="muted">الوضع الخفيف يقلل الـ blur والـ glow عشان الجوال والماك يكونون أسرع.</p></article><article class="settings-card glass-card"><h3>الإشعارات والصوت</h3><p class="muted">تنبيهات قصيرة ومحفزة بدون إزعاج.</p><div class="notif-panel"><div class="notif-row"><div><b>صوت الإنجاز</b><small>نغمة خفيفة عند الإنجاز</small></div><button class="btn ghost small" data-action="test-sound">تجربة</button></div><div class="notif-row"><div><b>رسالة تحفيزية</b><small>تظهر كتنبيه سريع</small></div><button class="btn primary small" data-action="motivate">أرسل الآن</button></div></div></article><article class="settings-card glass-card"><h3>ربط البيانات</h3><div class="data-box"><b>المستخدم الحالي:</b> @${escapeHtml(currentUser)}<br><b>طريقة الحفظ:</b> Local-first لكل مستخدم<br><b>Cloud:</b> Supabase جاهز كمرحلة لاحقة</div><button class="btn ghost full" data-action="export-data">تصدير البيانات</button><label class="btn ghost full" style="margin-top:10px;text-align:center">استيراد البيانات<input id="importData" type="file" accept="application/json" hidden></label></article><article class="settings-card glass-card"><h3>البيانات الخطرة</h3><p class="muted">استخدمها فقط لو تبي تبدأ من جديد.</p><button class="btn danger full" data-action="reset-user">تصفير بيانات المستخدم</button></article></div>`;
     $('#graphicsMode').value = state.settings.graphics || 'auto';
     $('#graphicsMode').addEventListener('change', e => { state.settings.graphics=e.target.value; applySettings(); saveState(); });
     $('#importData').addEventListener('change', importData);
@@ -332,6 +343,8 @@
     if (a==='export-data') exportData();
     if (a==='reset-user') resetUserData();
     if (a==='refresh-home') renderHome();
+    if (a==='test-sound') { playTone(660, 0.12); toast('الصوت شغال — نغمة خفيفة.'); }
+    if (a==='motivate') { playTone(520, 0.08); toast(motivationalLine()); }
   }
 
   function openTaskDialog(id=null) {
@@ -399,176 +412,30 @@
   function exportData(){ const blob=new Blob([JSON.stringify({user:currentUser,state},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`navo-${currentUser}-backup.json`; a.click(); URL.revokeObjectURL(a.href); }
   function importData(e){ const file=e.target.files[0]; if(!file)return; const r=new FileReader(); r.onload=()=>{ try{ const data=JSON.parse(r.result); state=data.state||data; saveState(); applySettings(); renderAll(); toast('تم استيراد البيانات'); }catch{toast('ملف غير صالح');} }; r.readAsText(file); }
   function resetUserData(){ if(!confirm('متأكد؟ سيتم تصفير بيانات المستخدم الحالي.'))return; state=defaultState(); state.profile.displayName=currentUser; saveState(); applySettings(); renderAll(); toast('تم تصفير البيانات'); }
+
+  function showWelcome(){
+    const box = $('#navoWelcome');
+    if (!box || localStorage.getItem('navo.v8.welcome.seen')) return;
+    $('#welcomeTitle').textContent = `حيّاك يا ${state.profile.displayName || currentUser}`;
+    $('#welcomeText').textContent = motivationalLine();
+    const close = () => { box.classList.remove('show'); box.setAttribute('aria-hidden', 'true'); localStorage.setItem('navo.v8.welcome.seen', '1'); };
+    $('#welcomeClose').onclick = close;
+    $('#welcomeStart').onclick = () => { close(); openTaskDialog(); playTone(520, 0.08); };
+    setTimeout(() => { box.classList.add('show'); box.setAttribute('aria-hidden', 'false'); }, 450);
+  }
+  function motivationalLine(){
+    const lines = [
+      'خذ نفس. مهمة وحدة تكفي عشان يومك يصير أوضح.',
+      'ابدأ بهدوء، الإنجاز القوي يبدأ من خطوة صغيرة.',
+      'رتّب أول مهمة والباقي بيصير أسهل.',
+      'جلسة تركيز قصيرة اليوم أفضل من تأجيل طويل.'
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
   function playTone(freq=440,duration=.05){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.frequency.value=freq; g.gain.value=.025; o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(()=>{o.stop();},duration*1000); }catch{} }
   function showMsg(t){ $('#authMsg').textContent=t; }
   function toast(t){ toastEl.textContent=t; toastEl.classList.add('show'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),2400); }
   function escapeHtml(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
   function escapeAttr(v=''){return escapeHtml(v).replace(/`/g,'&#096;');}
-})();
-
-/* =========================================================
-   Navo v7 Polish Pack — safe DOM enhancements only
-   Keeps original app logic intact and adds UX polish.
-   ========================================================= */
-(() => {
-  'use strict';
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const WELCOME_KEY = 'navo.v7.welcome.seen';
-  let audioCtx;
-
-  function bootPolish(){
-    enhanceSidebar();
-    enhanceTopbar();
-    showWelcomeOnce();
-    watchPages();
-    window.addEventListener('resize', enhanceSidebar, { passive:true });
-    document.addEventListener('click', globalClick, true);
-  }
-
-  function enhanceSidebar(){
-    const layout = $('#appView');
-    const sidebar = $('#sidebar');
-    const collapse = $('#collapseSidebar');
-    if(!layout || !sidebar || !collapse) return;
-    collapse.textContent = layout.classList.contains('collapsed') ? 'تكبير' : 'تصغير';
-    collapse.title = layout.classList.contains('collapsed') ? 'تكبير القائمة' : 'تصغير القائمة';
-    if(!collapse.dataset.v7){
-      collapse.dataset.v7 = '1';
-      collapse.addEventListener('click', () => setTimeout(() => {
-        collapse.textContent = layout.classList.contains('collapsed') ? 'تكبير' : 'تصغير القائمة';
-        softPing(340,.035);
-      }, 0));
-    }
-  }
-
-  function enhanceTopbar(){
-    const top = $('.topbar');
-    const quick = $('#quickTask');
-    const cmd = $('#cmdBtn');
-    if(top && !top.dataset.v7){
-      top.dataset.v7 = '1';
-      top.insertAdjacentHTML('beforeend','<span class="chip top-pulse">LIVE WORKSPACE</span>');
-    }
-    if(quick) quick.title = 'إضافة مهمة بسرعة';
-    if(cmd) cmd.title = 'لوحة الأوامر';
-  }
-
-  function showWelcomeOnce(){
-    const box = $('#navoWelcome');
-    if(!box) return;
-    const name = localStorage.getItem('navo.stable.session');
-    const display = safeName(name);
-    $('#welcomeTitle') && ($('#welcomeTitle').textContent = display ? `حيّاك يا ${display}` : 'حيّاك في Navo');
-    $('#welcomeText') && ($('#welcomeText').textContent = motivationalLine());
-    const close = () => { box.classList.remove('show'); box.setAttribute('aria-hidden','true'); localStorage.setItem(WELCOME_KEY,'1'); };
-    $('#welcomeClose')?.addEventListener('click', close);
-    $('#welcomeStart')?.addEventListener('click', () => { close(); softPing(520,.08); $('#quickTask')?.click(); });
-    setTimeout(() => {
-      if(!localStorage.getItem(WELCOME_KEY) && !$('#authView')?.classList.contains('hidden')) return;
-      if(!localStorage.getItem(WELCOME_KEY) && $('#appView') && !$('#appView').classList.contains('hidden')){
-        box.classList.add('show'); box.setAttribute('aria-hidden','false'); softPing(440,.06);
-      }
-    }, 850);
-  }
-
-  function safeName(raw){
-    try{ const x = JSON.parse(raw || '{}'); return (x.username || '').replace(/^./, c => c.toUpperCase()); }catch{return ''}
-  }
-  function motivationalLine(){
-    const lines = [
-      'خذ نفس. رتب أول مهمة، والباقي بيصير أسهل.',
-      'اليوم ما يحتاج ضغط. يحتاج وضوح وخطوة صغيرة.',
-      'ابدأ بجلسة تركيز قصيرة، وخلك ثابت.',
-      'Navo جاهز يرتب يومك بهدوء وبدون زحمة.'
-    ];
-    return lines[Math.floor(Math.random()*lines.length)];
-  }
-
-  function watchPages(){
-    const app = $('#appView');
-    if(!app) return;
-    const mo = new MutationObserver(() => {
-      enhanceSidebar(); enhanceTopbar(); enhanceSettings(); enhanceFocus(); enhanceSpaces(); enhanceProfile();
-    });
-    mo.observe(app, { childList:true, subtree:true, attributes:true, attributeFilter:['class'] });
-    setTimeout(() => { enhanceSettings(); enhanceFocus(); enhanceSpaces(); enhanceProfile(); }, 250);
-  }
-
-  function enhanceSettings(){
-    const settings = $('#settings');
-    if(!settings || !settings.classList.contains('active') || settings.dataset.v7) return;
-    settings.dataset.v7 = '1';
-    const grid = settings.querySelector('.settings-grid');
-    if(!grid) return;
-    grid.insertAdjacentHTML('beforeend', `
-      <article class="settings-card glass-card v7-notifications">
-        <h3>الإشعارات والصوت</h3>
-        <p class="muted">تنبيهات خفيفة ومحفزة بدون إزعاج، مع صوت بسيط عند الإنجاز أو بداية التركيز.</p>
-        <div class="notif-panel">
-          <div class="notif-row"><div><b>صوت الإنجاز</b><small>نغمة قصيرة عند إنهاء مهمة</small></div><button class="btn ghost small" data-v7="test-sound">تجربة</button></div>
-          <div class="notif-row"><div><b>تنبيه تحفيزي</b><small>رسالة بسيطة تظهر لك أثناء العمل</small></div><button class="btn primary small" data-v7="motivate">أرسل الآن</button></div>
-        </div>
-      </article>
-      <article class="settings-card glass-card v7-clean-code">
-        <h3>النظافة والأداء</h3>
-        <div class="data-box">تم ترك منطق التطبيق الأساسي بدون ترقيع عشوائي. الإضافات هنا طبقة تحسين منفصلة: تصميم، تجربة، إشعارات، وثبات القائمة.</div>
-      </article>
-    `);
-  }
-
-  function enhanceFocus(){
-    const focus = $('#focus');
-    if(!focus || !focus.classList.contains('active') || focus.dataset.v7) return;
-    focus.dataset.v7 = '1';
-    const room = $('#focusRoom');
-    if(room){
-      room.insertAdjacentHTML('beforeend','<div class="focus-orbit" aria-hidden="true"></div>');
-    }
-  }
-
-  function enhanceSpaces(){
-    const spaces = $('#spaces');
-    if(!spaces || !spaces.classList.contains('active') || spaces.dataset.v7) return;
-    spaces.dataset.v7 = '1';
-    spaces.querySelector('.section-head')?.insertAdjacentHTML('afterend','<p class="muted" style="margin-top:-4px;margin-bottom:14px">قسّم حياتك لمساحات واضحة: دراسة، برمجة، شخصي، أو أي نظام يناسبك.</p>');
-  }
-
-  function enhanceProfile(){
-    const profile = $('#profile');
-    if(!profile || !profile.classList.contains('active') || profile.dataset.v7) return;
-    profile.dataset.v7 = '1';
-    profile.querySelector('.profile-hero')?.insertAdjacentHTML('beforeend','<p class="chip" style="margin:16px auto 0">CALM PROFILE</p>');
-  }
-
-  function globalClick(e){
-    const a = e.target.closest('[data-v7]')?.dataset.v7;
-    if(!a) return;
-    if(a === 'test-sound') { softPing(660,.12); toastLocal('الصوت شغال — نغمة خفيفة وفخمة.'); }
-    if(a === 'motivate') { softPing(520,.08); toastLocal(motivationalLine()); }
-  }
-
-  function softPing(freq=440, dur=.06){
-    try{
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine'; osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.055, audioCtx.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-      osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + dur + .02);
-    }catch{}
-  }
-
-  function toastLocal(message){
-    const t = $('#toast'); if(!t) return;
-    t.textContent = message;
-    t.classList.add('show');
-    clearTimeout(t._v7Timer);
-    t._v7Timer = setTimeout(()=>t.classList.remove('show'), 2800);
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootPolish);
-  else bootPolish();
 })();
