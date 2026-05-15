@@ -282,13 +282,17 @@ function renderFocus(){
   const passed = Math.max(0, totalSeconds - focusLeft);
   const progress = totalSeconds > 0 ? Math.min(100, Math.round((passed / totalSeconds) * 100)) : 0;
   const isBreak = focusModeType === "break";
-  const stageTitle = isBreak ? "وقت بريك خفيف" : "جلسة مذاكرة عميقة";
-  const stageSub = isBreak ? "قوم، اشرب موية، وخذ نفس. لا تفتح مشتتات." : "حط الجوال بعيد، ركز على شيء واحد فقط، والباقي بعد الجلسة.";
+  const stageTitle = isBreak ? "بريك بدون مشتتات" : "جلسة مذاكرة عميقة";
+  const stageSub = isBreak
+    ? "خذ راحة خفيفة، اشرب موية، وارجع للجلسة التالية."
+    : "ركز على مادة وحدة فقط. لا تفتح أي شيء يشتتك.";
   const stateText = isBreak ? "BREAK" : "STUDY";
+  const focusMinutesValue = Math.round(focusTotal / 60);
 
   $("#focusPage").innerHTML = `
     <div class="focus-pro">
       <section class="focus-stage glass ${focusRunning ? "running" : ""} ${isBreak ? "break-mode" : ""} ${focusStudyFullscreen ? "focus-fullscreen" : ""}">
+        ${focusStudyFullscreen ? `<button class="btn ghost focus-exit-full" data-action="fullStudyFocus">تصغير</button>` : ""}
         <div class="focus-center">
           <span class="chip focus-state-chip">${stateText} MODE</span>
           <h2 class="focus-title">${stageTitle}</h2>
@@ -297,9 +301,12 @@ function renderFocus(){
           <div class="focus-ring-pro" style="--progress:${progress}">
             <div class="focus-time">
               <b id="timerText">${format(focusLeft)}</b>
-              <span>${isBreak ? "استراحة" : "تركيز"} · ${progress}%</span>
+              <span>${isBreak ? "استراحة" : "مذاكرة"} · ${progress}%</span>
+              <div class="focus-progress-text">${format(passed)} / ${format(totalSeconds)}</div>
             </div>
           </div>
+
+          <div class="focus-mini-bar" style="--progress-width:${progress}%"><i></i></div>
 
           <div class="focus-buttons">
             <button class="btn primary" data-action="toggleFocus">${focusRunning ? "إيقاف مؤقت" : "ابدأ"}</button>
@@ -311,54 +318,81 @@ function renderFocus(){
       </section>
 
       <aside class="focus-side-pro glass">
-        <span class="chip">STUDY SETUP</span>
+        <span class="chip">CUSTOM STUDY TIMER</span>
         <h2>إعداد التركيز</h2>
-        <p class="muted">حدد وقت المذاكرة والبريك وعدد الجلسات.</p>
+        <p class="muted">اكتب وقت المذاكرة والبريك بنفسك. الافتراضي 25 دقيقة مذاكرة و5 دقائق بريك.</p>
 
-        <div class="focus-controls-grid">
-          <div class="focus-control-card"><label>وقت التركيز
-            <select id="focusMinutes"><option value="15">15 دقيقة</option><option value="25">25 دقيقة</option><option value="45">45 دقيقة</option><option value="60">60 دقيقة</option><option value="90">90 دقيقة</option></select>
-          </label></div>
+        <div class="focus-input-row">
+          <div class="focus-control-card">
+            <label>وقت المذاكرة</label>
+            <div class="focus-number">
+              <input id="focusMinutesInput" type="number" min="1" max="240" value="${focusMinutesValue}">
+              <span>دقيقة</span>
+            </div>
+          </div>
 
-          <div class="focus-control-card"><label>وقت البريك
-            <select id="breakMinutes"><option value="5">5 دقائق</option><option value="10">10 دقائق</option><option value="15">15 دقيقة</option><option value="20">20 دقيقة</option></select>
-          </label></div>
+          <div class="focus-control-card">
+            <label>وقت البريك</label>
+            <div class="focus-number">
+              <input id="breakMinutesInput" type="number" min="1" max="120" value="${focusBreakMinutes}">
+              <span>دقيقة</span>
+            </div>
+          </div>
+        </div>
 
-          <div class="focus-control-card"><label>عدد الجلسات
-            <select id="sessionTarget"><option value="2">جلستين</option><option value="3">3 جلسات</option><option value="4">4 جلسات</option><option value="6">6 جلسات</option></select>
-          </label></div>
+        <div class="focus-presets">
+          <button type="button" data-action="presetFocus" data-focus="25" data-break="5">25 / 5</button>
+          <button type="button" data-action="presetFocus" data-focus="45" data-break="10">45 / 10</button>
+          <button type="button" data-action="presetFocus" data-focus="60" data-break="15">60 / 15</button>
+          <button type="button" data-action="presetFocus" data-focus="90" data-break="20">90 / 20</button>
+        </div>
 
-          <div class="focus-control-card"><label>الوضع
-            <select id="focusModeSelect"><option value="focus">مذاكرة</option><option value="break">بريك</option></select>
-          </label></div>
+        <div class="focus-controls-grid" style="margin-top:12px">
+          <div class="focus-control-card">
+            <label>عدد الجلسات
+              <select id="sessionTarget">
+                <option value="2">جلستين</option>
+                <option value="3">3 جلسات</option>
+                <option value="4">4 جلسات</option>
+                <option value="6">6 جلسات</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="focus-control-card">
+            <label>الوضع
+              <select id="focusModeSelect">
+                <option value="focus">مذاكرة</option>
+                <option value="break">بريك</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         <div class="focus-stat-row">
-          <div class="focus-stat-mini"><b>${focusSessionDone}/${focusSessionsTarget}</b><span class="muted">جلسات اليوم</span></div>
-          <div class="focus-stat-mini"><b>${me.focusMinutes}m</b><span class="muted">إجمالي التركيز</span></div>
+          <div class="focus-stat-mini">
+            <b>${focusSessionDone}/${focusSessionsTarget}</b>
+            <span class="muted">جلسات اليوم</span>
+          </div>
+          <div class="focus-stat-mini">
+            <b>${me.focusMinutes}m</b>
+            <span class="muted">إجمالي التركيز</span>
+          </div>
         </div>
 
-        <div class="focus-tips"><b>نصيحة:</b><br>قبل ما تبدأ، افتح المادة فقط، اقفل الإشعارات، وحدد صفحة أو محاضرة واحدة.</div>
+        <div class="focus-tips">
+          <b>نصيحة للمذاكرة:</b><br>
+          افتح المادة فقط، اقفل الإشعارات، واكتب هدف الجلسة قبل ما تبدأ.
+        </div>
       </aside>
     </div>
   `;
 
-  $("#focusMinutes").value = String(focusTotal / 60);
-  $("#breakMinutes").value = String(focusBreakMinutes);
   $("#sessionTarget").value = String(focusSessionsTarget);
   $("#focusModeSelect").value = focusModeType;
 
-  $("#focusMinutes").onchange = () => {
-    focusTotal = Number($("#focusMinutes").value) * 60;
-    localStorage.setItem("navo_focus_minutes", String(focusTotal / 60));
-    if(focusModeType === "focus"){ focusLeft = focusTotal; focusRunning = false; clearInterval(timer); timer = null; renderFocus(); }
-  };
-
-  $("#breakMinutes").onchange = () => {
-    focusBreakMinutes = Number($("#breakMinutes").value);
-    localStorage.setItem("navo_break_minutes", String(focusBreakMinutes));
-    if(focusModeType === "break"){ focusLeft = focusBreakMinutes * 60; focusRunning = false; clearInterval(timer); timer = null; renderFocus(); }
-  };
+  $("#focusMinutesInput").onchange = () => updateCustomFocusTimes(false);
+  $("#breakMinutesInput").onchange = () => updateCustomFocusTimes(false);
 
   $("#sessionTarget").onchange = () => {
     focusSessionsTarget = Number($("#sessionTarget").value);
@@ -367,6 +401,7 @@ function renderFocus(){
   };
 
   $("#focusModeSelect").onchange = () => {
+    updateCustomFocusTimes(true);
     focusModeType = $("#focusModeSelect").value;
     focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
     focusRunning = false;
@@ -482,6 +517,9 @@ function bindActions(root=document){
       if(action === "theme") toggleTheme();
       if(action === "admin") location.href = "/admin";
       if(action === "openSupport") openSupport();
+      if(action === "fullStudyFocus") toggleStudyFullscreen();
+      if(action === "skipFocus") skipFocusStep();
+      if(action === "presetFocus") applyFocusPreset(el.dataset.focus, el.dataset.break);
       if(action === "fullFocus") cleanToggleFullFocus();
       if(action === "color") setColor(el.dataset.c1, el.dataset.c2);
       if(action === "saveProfile") saveProfile();
@@ -690,6 +728,44 @@ async function completeFocus(){
   }
 }
 
+
+
+function updateCustomFocusTimes(quiet=false){
+  const focusInput = $("#focusMinutesInput");
+  const breakInput = $("#breakMinutesInput");
+  const focusMinutes = Math.max(1, Math.min(240, Number(focusInput?.value || 25)));
+  const breakMinutes = Math.max(1, Math.min(120, Number(breakInput?.value || 5)));
+
+  focusTotal = focusMinutes * 60;
+  focusBreakMinutes = breakMinutes;
+
+  localStorage.setItem("navo_focus_minutes", String(focusMinutes));
+  localStorage.setItem("navo_break_minutes", String(breakMinutes));
+
+  if(!focusRunning){
+    focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+  }
+
+  if(!quiet){
+    if(typeof cleanNotify === "function") cleanNotify("تم تحديث الوقت", `${focusMinutes} دقيقة مذاكرة و ${breakMinutes} دقائق بريك.`, "info");
+    else toast("تم تحديث الوقت");
+    renderFocus();
+  }
+}
+
+function applyFocusPreset(focusMinutes, breakMinutes){
+  focusTotal = Number(focusMinutes) * 60;
+  focusBreakMinutes = Number(breakMinutes);
+  localStorage.setItem("navo_focus_minutes", String(focusMinutes));
+  localStorage.setItem("navo_break_minutes", String(breakMinutes));
+  focusRunning = false;
+  clearInterval(timer);
+  timer = null;
+  focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+  if(typeof cleanNotify === "function") cleanNotify("تم اختيار النمط", `${focusMinutes} دقيقة مذاكرة و ${breakMinutes} دقائق بريك.`, "info");
+  else toast("تم اختيار النمط");
+  renderFocus();
+}
 
 function completeBreak(){
   clearInterval(timer);

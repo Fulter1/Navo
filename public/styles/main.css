@@ -462,3 +462,171 @@ body.full-focus-active .bottom-nav{
 body.full-focus-active .sidebar,body.full-focus-active .topbar,body.full-focus-active .bottom-nav{opacity:0;pointer-events:none}
 @media(max-width:1100px){.focus-pro{grid-template-columns:1fr}.focus-stage{min-height:620px}}
 @media(max-width:650px){.focus-controls-grid,.focus-stat-row{grid-template-columns:1fr}.focus-buttons{display:grid}}
+
+
+/* =========================================================
+   Focus Pro v2 — custom study/break time + better timer
+   ========================================================= */
+
+.focus-stage{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(91,231,255,.18),transparent 34%),
+    radial-gradient(circle at 18% 88%,rgba(124,92,255,.12),transparent 38%),
+    linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.03))!important;
+}
+
+.focus-stage.break-mode{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(62,229,142,.16),transparent 34%),
+    radial-gradient(circle at 18% 88%,rgba(91,231,255,.10),transparent 38%),
+    linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.03))!important;
+}
+
+.focus-ring-pro{
+  width:min(390px,76vw);
+  height:min(390px,76vw);
+  background:
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.07),rgba(255,255,255,.025) 48%,transparent 62%),
+    conic-gradient(var(--accent) calc(var(--progress,0)*1%),rgba(255,255,255,.075) 0)!important;
+}
+
+.focus-ring-pro::before{
+  inset:24px;
+  background:
+    radial-gradient(circle,rgba(91,231,255,.08),rgba(0,0,0,.10));
+  box-shadow:inset 0 0 35px rgba(0,0,0,.22);
+}
+
+.focus-ring-pro::after{
+  inset:-10px;
+  border:1px solid rgba(91,231,255,.25);
+  box-shadow:0 0 35px rgba(91,231,255,.16);
+}
+
+.focus-time b{
+  font-family:Inter,Cairo,system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(62px,9vw,96px);
+  text-shadow:
+    0 0 22px rgba(91,231,255,.22),
+    0 0 60px rgba(91,231,255,.12);
+}
+
+.focus-time span{
+  font-size:13px;
+  letter-spacing:.4px;
+}
+
+.focus-progress-text{
+  margin-top:10px;
+  color:var(--muted);
+  font-weight:900;
+  direction:ltr;
+}
+
+.focus-mini-bar{
+  width:min(420px,90%);
+  height:10px;
+  margin:14px auto 0;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  overflow:hidden;
+}
+
+.focus-mini-bar i{
+  display:block;
+  height:100%;
+  width:var(--progress-width);
+  border-radius:inherit;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  box-shadow:0 0 20px rgba(91,231,255,.35);
+}
+
+.focus-input-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.focus-number{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+
+.focus-number input{
+  text-align:center;
+  font-weight:900;
+  font-size:18px;
+  min-height:52px;
+}
+
+.focus-number span{
+  color:var(--muted);
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.focus-presets{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.focus-presets button{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.045);
+  color:var(--text);
+  border-radius:999px;
+  padding:8px 11px;
+  font-weight:900;
+}
+
+.focus-presets button:hover{
+  border-color:rgba(91,231,255,.25);
+}
+
+.focus-fullscreen{
+  z-index:9999!important;
+}
+
+.focus-fullscreen .focus-side-pro{
+  display:none!important;
+}
+
+.focus-fullscreen .focus-ring-pro{
+  width:min(520px,80vw)!important;
+  height:min(520px,80vw)!important;
+}
+
+.focus-fullscreen .focus-time b{
+  font-size:clamp(74px,12vw,120px);
+}
+
+.focus-fullscreen .focus-center{
+  width:min(900px,100%);
+}
+
+.focus-exit-full{
+  position:absolute;
+  top:20px;
+  left:20px;
+  z-index:4;
+}
+
+@media(max-width:650px){
+  .focus-input-row{
+    grid-template-columns:1fr;
+  }
+
+  .focus-ring-pro{
+    width:min(330px,82vw);
+    height:min(330px,82vw);
+  }
+
+  .focus-time b{
+    font-size:clamp(52px,15vw,76px);
+  }
+}
