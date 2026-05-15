@@ -1,35 +1,29 @@
-# Navo 2.0 — Launch Version
+# Navo 2.1 — Intelligent Calm OS جاهز
 
-هذه نسخة الإطلاق الجديدة من Navo كـ Calm Productivity Operating System.
+هذه نسخة جاهزة للتشغيل مبنية فوق Navo 2.0.
 
-## الملفات
-- index.html: Landing Page + Auth + App
-- style.css: الهوية الجديدة + Motion System + Responsive + Landing
-- app.js: وظائف التطبيق + AI UX + Onboarding + Auth Polish
-- navo-config.js: إعدادات Supabase
-- SUPABASE_SETUP.sql: قاعدة البيانات في Supabase
-- manifest.webmanifest + sw.js: دعم PWA
-- assets/: الشعار والأيقونة
-
-## أهم الإضافات
-1) Landing Page احترافية كاملة: Hero, Features, AI Layer, Screenshots, Pricing, Testimonials, Footer.
-2) هوية Navo 2.0 الجديدة: Calm Productivity OS + Focus without noise.
-3) Motion System: Scroll reveals, tilt mockup, smoother command palette, hover depth.
-4) Auth UX: Remember me, password strength, forgot password UI, social login placeholders, loading skeleton.
-5) Onboarding: اختيار أسلوب المستخدم أول مرة.
-6) AI Brain Dump: تصنيف الأفكار إلى مهام مع أولوية ومساحة مناسبة.
-7) Focus Room 2.0: Deep Mode + cinematic polish.
-8) Empty States احترافية بدل الفراغ العادي.
-9) Command Palette أقوى بأوامر /focus /task /brain /theme.
-10) Mobile polish وتحسينات إطلاق.
+## أهم ما تم تنفيذه
+- Performance System: وضع رسوم تلقائي + Low Graphics للأجهزة الضعيفة.
+- Adaptive Blur: تخفيف البلور والظلال حسب الجهاز.
+- AI Pulse داخل الداشبورد: اقتراحات ذكية حسب المهام والجلسات.
+- Smart Brain Dump محسن: تصنيف المهام حسب الأولوية والمساحة.
+- Focus Room 2.1: Deep Mode + Focus Lock + Breathing Rings.
+- Keyboard Shortcuts داخل Focus: Space إيقاف، Enter تشغيل، Esc Deep Mode.
+- Viral Share Cards: بطاقة أسبوعية قابلة للتحميل SVG.
+- Sound Design خفيف: نغمات UI ناعمة مولدة محليًا.
+- Dynamic Ambience: يتغير الجو حسب وقت اليوم.
+- Mobile Native Feel: تحسينات لمس وجوال وBottom sheet خفيف.
+- Command Palette أقوى: /deep /summary /graphics بجانب أوامر 2.0.
+- Brand Personality: نصوص أهدأ وتجربة أقرب لمنتج SaaS.
 
 ## التشغيل
-افتح المجلد في VS Code ثم شغل Live Server على index.html.
+1. افتح المجلد في VS Code.
+2. شغل Live Server على index.html.
+3. لا تفتح index.html مباشرة من file:// عشان PWA و Service Worker.
 
 ## Supabase
-لو تبي Cloud Sync:
-1) عدل navo-config.js وحط بيانات مشروع Supabase.
-2) شغل SUPABASE_SETUP.sql داخل Supabase SQL Editor مرة واحدة.
+- عدل navo-config.js ببيانات مشروعك.
+- شغل SUPABASE_SETUP.sql مرة واحدة في Supabase SQL Editor.
 
-## ملاحظة
-لا تفتح index.html مباشرة من الملف؛ استخدم Live Server عشان PWA و Service Worker يشتغلون صح.
+## ملاحظة مهمة
+الـ AI هنا Local Smart Engine بدون API خارجي. لو تبغى AI حقيقي بـ OpenAI/Gemini نضيف Backend آمن لاحقًا حتى لا ينكشف مفتاح API في المتصفح.

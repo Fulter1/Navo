@@ -716,3 +716,171 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
+
+
+/* =========================================================
+   NAVO 2.1 READY RUNTIME — Intelligent Calm OS
+   ========================================================= */
+(function(){
+  const safe=(fn)=>{try{return fn()}catch(e){console.warn('[Navo 2.1]',e)}};
+  const store='navo_2_1_settings';
+  const settings=()=>JSON.parse(localStorage.getItem(store)||'{}');
+  const setSettings=(v)=>localStorage.setItem(store,JSON.stringify({...settings(),...v}));
+
+  function applyPerformance(mode='auto'){
+    const lowRam=navigator.deviceMemory && navigator.deviceMemory<=4;
+    const lowCpu=navigator.hardwareConcurrency && navigator.hardwareConcurrency<=4;
+    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const shouldLow=mode==='low'||(mode==='auto'&&(lowRam||lowCpu||reduce));
+    document.body.classList.toggle('performance-low',!!shouldLow);
+    document.body.classList.toggle('motion-low',!!reduce);
+    const chip=document.querySelector('.performance-chip')||document.body.appendChild(Object.assign(document.createElement('div'),{className:'performance-chip'}));
+    chip.textContent=shouldLow?'Graphics: Low':'Graphics: Full';
+  }
+
+  function ambienceByTime(){
+    const h=new Date().getHours();
+    document.body.dataset.ambience=(h>=19||h<=5)?'night':'day';
+  }
+
+  function scoreTask(t,idx=0){
+    const priority={High:40,Medium:22,Low:10}[t.priority]||15;
+    const due=(t.date||today())===today()?24:0;
+    const pin=t.pinned?30:0;
+    const age=Math.max(0,10-idx);
+    return priority+due+pin+age-(t.done?100:0);
+  }
+
+  function intelligentPlan(){
+    if(!state)return [];
+    const open=state.tasks.filter(t=>!t.done).map((t,i)=>({...t,_score:scoreTask(t,i)})).sort((a,b)=>b._score-a._score);
+    const hour=new Date().getHours();
+    const sessions=Number(state.sessions||0);
+    const done=state.tasks.filter(t=>t.done).length;
+    const high=open.filter(t=>t.priority==='High').length;
+    const cards=[];
+    if(open[0]) cards.push({title:'ابدأ هنا',body:`${open[0].title} — أعلى أولوية الآن.`});
+    if(high>1) cards.push({title:'خفف الضغط',body:`عندك ${high} مهام عالية. اختر واحدة فقط للبداية.`});
+    else if(!open.length) cards.push({title:'اليوم هادئ',body:'مساحتك نظيفة. أضف هدفًا خفيفًا أو خذ راحة.'});
+    cards.push({title:'طاقة التركيز',body:hour>=20?'وقت مناسب لجلسة هادئة قصيرة.':'ابدأ بجلسة 25 دقيقة لبناء الرتم.'});
+    cards.push({title:'ملخص سريع',body:`أنجزت ${done} مهام، وعدد جلساتك ${sessions}.`});
+    return cards.slice(0,3);
+  }
+
+  function renderAiPulse(){
+    const box=document.querySelector('#aiPulseList'); if(!box||!state)return;
+    box.innerHTML=intelligentPlan().map(c=>`<div class="ai-pulse"><b>${esc(c.title)}</b><span>${esc(c.body)}</span></div>`).join('');
+  }
+
+  function patchRender21(){
+    if(typeof render==='function' && !render.__navo21){
+      const old=render;
+      render=function(){const r=old.apply(this,arguments); safe(renderAiPulse); safe(updateShareNumbers); return r};
+      render.__navo21=true;
+    }
+  }
+
+  function patchSortSmart(){
+    const btn=document.querySelector('#sortTasks'); if(!btn||btn.dataset.navo21)return; btn.dataset.navo21='1';
+    btn.addEventListener('click',e=>{safe(()=>{state.tasks.sort((a,b)=>scoreTask(b)-scoreTask(a)); save(); toast('Navo رتّب يومك بذكاء');});},true);
+  }
+
+  function focusBreathing(){
+    const room=document.querySelector('#focusRoom'); if(!room||room.querySelector('.breath-ring'))return;
+    ['',' r2',' r3'].forEach(cls=>{const r=document.createElement('i'); r.className='breath-ring'+cls; room.prepend(r);});
+  }
+
+  function deepFocusKeyboard(){
+    document.addEventListener('keydown',e=>{
+      const room=document.querySelector('#focusRoom'); if(!room)return;
+      if(document.querySelector('#focus')?.classList.contains('active')){
+        if(e.code==='Space'){e.preventDefault(); document.querySelector('#pauseTimer')?.click(); toast('تم إيقاف الجلسة مؤقتًا')}
+        if(e.key==='Enter'){document.querySelector('#startTimer')?.click()}
+        if(e.key==='Escape'){room.classList.toggle('deep-mode'); document.body.classList.toggle('focus-lock',room.classList.contains('deep-mode'))}
+      }
+    });
+  }
+
+  function patchDeepButton(){
+    const btn=document.querySelector('#deepModeBtn'); if(!btn||btn.dataset.navo21)return; btn.dataset.navo21='1';
+    btn.addEventListener('click',()=>document.body.classList.toggle('focus-lock',document.querySelector('#focusRoom')?.classList.contains('deep-mode')));
+  }
+
+  function softChime(type='click'){
+    if(settings().sound==='off')return;
+    try{const C=window.AudioContext||window.webkitAudioContext; const c=new C(); const o=c.createOscillator(); const g=c.createGain(); o.type='sine'; o.frequency.value=type==='done'?740:420; g.gain.value=.018; o.connect(g); g.connect(c.destination); o.start(); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.18); o.stop(c.currentTime+.2);}catch{}
+  }
+
+  function patchSoundDesign(){
+    if(document.body.dataset.soundDesign)return; document.body.dataset.soundDesign='1';
+    document.addEventListener('click',e=>{if(e.target.closest('button')) softChime('click')},true);
+    if(typeof toggleTask==='function'&&!toggleTask.__navo21){const old=toggleTask; toggleTask=function(id){const r=old.apply(this,arguments); softChime('done'); return r}; toggleTask.__navo21=true;}
+  }
+
+  function updateShareNumbers(){
+    if(!state)return;
+    const hours=((Number(state.sessions||0)*Number(state.profile?.focusMinutes||25))/60).toFixed(1);
+    const done=state.tasks.filter(t=>t.done).length;
+    const streak=state.profile?.streak||1;
+    const rk=typeof rank==='function'?rank():'Rookie';
+    document.querySelector('#shareFocusHours') && (document.querySelector('#shareFocusHours').textContent=hours+'h');
+    document.querySelector('#shareTasks') && (document.querySelector('#shareTasks').textContent=done+' مهام');
+    document.querySelector('#shareStreak') && (document.querySelector('#shareStreak').textContent=streak+' streak');
+    document.querySelector('#shareRank') && (document.querySelector('#shareRank').textContent=rk);
+    document.querySelector('#shareLine') && (document.querySelector('#shareLine').textContent='Focus without noise.');
+  }
+
+  async function downloadSharePng(){
+    // SVG snapshot keeps the feature dependency-free and works offline.
+    const card=document.querySelector('#weeklyShareCard'); if(!card)return;
+    const hours=document.querySelector('#shareFocusHours')?.textContent||'0h';
+    const tasks=document.querySelector('#shareTasks')?.textContent||'0 مهام';
+    const streak=document.querySelector('#shareStreak')?.textContent||'1 streak';
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#05070c"/><stop offset="1" stop-color="#0b66e4"/></linearGradient><filter id="blur"><feGaussianBlur stdDeviation="70"/></filter></defs><rect width="1080" height="1440" fill="url(#g)"/><circle cx="540" cy="220" r="260" fill="#35d7ff" opacity=".24" filter="url(#blur)"/><text x="540" y="280" text-anchor="middle" fill="#f7fbff" font-family="Arial" font-size="54" font-weight="700">Navo Weekly Focus</text><text x="540" y="650" text-anchor="middle" fill="#35d7ff" font-family="Arial" font-size="180" font-weight="900">${hours}</text><text x="540" y="760" text-anchor="middle" fill="#f7fbff" opacity=".72" font-family="Arial" font-size="42">Focus without noise.</text><text x="540" y="940" text-anchor="middle" fill="#f7fbff" font-family="Arial" font-size="42">${tasks} • ${streak}</text><text x="540" y="1230" text-anchor="middle" fill="#f7fbff" opacity=".62" font-family="Arial" font-size="34">Calm Productivity OS</text></svg>`;
+    const blob=new Blob([svg],{type:'image/svg+xml'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='navo-weekly-focus.svg'; a.click(); URL.revokeObjectURL(url); toast('تم تحميل بطاقة المشاركة');
+  }
+
+  function patchShareCards(){
+    document.querySelector('#createShareCard')?.addEventListener('click',()=>{updateShareNumbers(); document.querySelector('#shareDialog')?.showModal();});
+    document.querySelector('#closeShare')?.addEventListener('click',()=>document.querySelector('#shareDialog')?.close());
+    document.querySelector('#downloadShareCard')?.addEventListener('click',downloadSharePng);
+  }
+
+  function graphicsSettings(){
+    const select=document.querySelector('#graphicsMode'); if(!select)return;
+    select.value=settings().graphicsMode||'auto'; applyPerformance(select.value);
+    select.addEventListener('change',()=>{setSettings({graphicsMode:select.value}); applyPerformance(select.value); toast('تم تحديث وضع الرسوم')});
+  }
+
+  function mobileNativeFeel(){
+    if(document.querySelector('.native-sheet'))return;
+    const sheet=document.createElement('div'); sheet.className='native-sheet'; sheet.innerHTML='<b>اختصار سريع</b><p class="muted-line">اسحب للتنقل أو استخدم شريط الجوال بالأسفل.</p>'; document.body.appendChild(sheet);
+    let y=0; window.addEventListener('touchstart',e=>y=e.touches[0].clientY,{passive:true});
+    window.addEventListener('touchend',e=>{const diff=(e.changedTouches[0].clientY-y); if(diff<-130&&window.innerWidth<800){sheet.classList.add('show'); clearTimeout(sheet.t); sheet.t=setTimeout(()=>sheet.classList.remove('show'),1800)}},{passive:true});
+  }
+
+  function patchCommand21(){
+    if(typeof cmdResults==='function'&&!cmdResults.__navo21){
+      const old=cmdResults;
+      cmdResults=function(q){old(q); const list=document.querySelector('#cmdList'); if(!list)return; const extra=[['/deep','تفعيل Deep Mode',()=>{page('focus'); setTimeout(()=>document.querySelector('#deepModeBtn')?.click(),80)}],['/summary','بطاقة الأسبوع',()=>{page('insights'); setTimeout(()=>document.querySelector('#createShareCard')?.click(),100)}],['/graphics','تبديل الأداء',()=>{document.body.classList.toggle('performance-low'); toast('تم تبديل وضع الأداء')}]]; const clean=(q||'').toLowerCase(); extra.filter(x=>x[0].includes(clean)||x[1].includes(q)).forEach((x,i)=>{const el=document.createElement('div'); el.className='cmd-item'; el.innerHTML=`<b>${x[0]}</b> — ${x[1]}`; el.onclick=()=>{document.querySelector('#cmd')?.classList.add('hidden'); x[2]()}; list.appendChild(el);});};
+      cmdResults.__navo21=true;
+    }
+  }
+
+  function patchSessionSummary21(){
+    if(typeof startTimer==='function'&&!startTimer.__navo21){
+      const old=startTimer;
+      startTimer=function(){document.querySelector('#focusRoom')?.classList.add('running'); return old.apply(this,arguments)};
+      startTimer.__navo21=true;
+    }
+  }
+
+  function boot21(){
+    safe(()=>applyPerformance(settings().graphicsMode||'auto'));
+    safe(ambienceByTime); setInterval(()=>safe(ambienceByTime),60000);
+    safe(patchRender21); safe(renderAiPulse); safe(patchSortSmart); safe(focusBreathing); safe(deepFocusKeyboard); safe(patchDeepButton); safe(patchSoundDesign); safe(patchShareCards); safe(graphicsSettings); safe(mobileNativeFeel); safe(patchCommand21); safe(patchSessionSummary21);
+    document.querySelector('#refreshAiPulse')?.addEventListener('click',()=>{renderAiPulse(); toast('تم تحديث AI Pulse')});
+    setTimeout(()=>safe(()=>{if(typeof render==='function'&&state)render()}),500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot21);else boot21();
+})();

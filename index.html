@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#07090f" />
-  <title>Navo 2.0 — Calm Productivity OS</title>
-  <!-- Navo 2.0 Launch Build — Calm Productivity OS -->
+  <title>Navo 2.1 — Intelligent Calm OS</title>
+  <!-- Navo 2.1 Ready Build — Intelligent Calm OS -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/navo-icon.png" />
   <link rel="apple-touch-icon" href="assets/navo-icon.png" />
@@ -34,7 +34,7 @@
 
   <section id="landing" class="landing-v2">
     <header class="launch-nav glass">
-      <button class="launch-brand" type="button" data-scroll="landing"><img src="assets/navo-mark.svg" alt="Navo"><b>Navo</b><span>2.0</span></button>
+      <button class="launch-brand" type="button" data-scroll="landing"><img src="assets/navo-mark.svg" alt="Navo"><b>Navo</b><span>2.1</span></button>
       <nav>
         <button type="button" data-scroll="features">المميزات</button>
         <button type="button" data-scroll="ai-layer">AI Layer</button>
@@ -48,7 +48,7 @@
 
     <section class="launch-hero reveal-on-scroll">
       <div class="launch-copy">
-        <span class="eyebrow">NAVO 2.0 • CALM PRODUCTIVITY OS</span>
+        <span class="eyebrow">NAVO 2.1 • INTELLIGENT CALM OS</span>
         <h1>رتّب عقلك.<br>وركّز بدون ضجيج.</h1>
         <p>Navo يحول مهامك، أفكارك، وجلسات تركيزك إلى نظام تشغيل شخصي هادئ يساعدك تبدأ أهم شيء بدون تشتيت.</p>
         <div class="launch-actions">
@@ -203,6 +203,10 @@
               <button data-jump="dump" class="ghost big">Brain Dump</button>
             </div>
           </article>
+          <article class="glass ai-live-card span-2">
+            <div class="section-head"><div><span class="eyebrow">AI PULSE</span><h3>اقتراح ذكي الآن</h3></div><button id="refreshAiPulse" class="ghost" type="button">تحديث</button></div>
+            <div id="aiPulseList" class="ai-pulse-list"></div>
+          </article>
           <article class="glass today-score">
             <span>Today Progress</span>
             <strong id="todayPct">0%</strong>
@@ -286,7 +290,7 @@
 
       <section id="insights" class="page">
         <div class="insights-layout">
-          <article class="glass insight-main"><span class="eyebrow">INSIGHTS</span><h2>تحليلك الأسبوعي</h2><p id="weeklyText">ابدأ بإنجاز مهام وجلسات تركيز عشان تظهر التحليلات.</p><div id="heatmap" class="heatmap"></div></article>
+          <article class="glass insight-main"><span class="eyebrow">INSIGHTS</span><h2>تحليلك الأسبوعي</h2><p id="weeklyText">ابدأ بإنجاز مهام وجلسات تركيز عشان تظهر التحليلات.</p><div id="heatmap" class="heatmap"></div><button id="createShareCard" class="primary full" type="button">إنشاء بطاقة مشاركة أسبوعية</button></article>
           <article class="glass stats-card"><span>Completion</span><b id="completionRate">0%</b><small>all tasks</small></article>
           <article class="glass stats-card"><span>Best Space</span><b id="bestSpace">—</b><small>most tasks</small></article>
           <article class="glass stats-card"><span>Night Mode</span><b id="nightScore">Calm</b><small>focus style</small></article>
@@ -306,6 +310,7 @@
           <article class="glass settings-card"><h3>الملف الشخصي</h3><label>اسم العرض<input id="displayName" placeholder="اسمك داخل Navo"></label><label>نبذة<textarea id="bioInput" placeholder="اكتب وصف بسيط عنك"></textarea></label><button id="saveProfile" class="primary full">حفظ التغييرات</button></article>
           <article class="glass settings-card"><h3>التركيز والوقت</h3><div class="two"><label>Focus minutes<input id="focusMinutes" type="number" min="5" max="90"></label><label>Break minutes<input id="breakMinutes" type="number" min="1" max="30"></label></div><p class="muted-line">هذه الإعدادات تغير مؤقت Focus Room في كل جلسة.</p></article>
           <article class="glass settings-card"><h3>المظهر</h3><button id="themeMirrorBtn" class="ghost full" type="button">تبديل الوضع الليلي / النهاري</button><label>تأثير الماوس<select id="mouseEffectSelect"><option value="off" selected>Off — إيقاف</option><option value="soft">Soft — خفيف</option><option value="full">Full — كامل</option></select></label></article>
+          <article class="glass settings-card"><h3>الأداء والحركة</h3><label>وضع الرسوم<select id="graphicsMode"><option value="auto">Auto — تلقائي</option><option value="full">Full — كامل</option><option value="low">Low — خفيف</option></select></label><p class="muted-line">يخفف البلور والحركة تلقائيًا على الأجهزة الضعيفة.</p></article>
           <article class="glass settings-card cloud-account-card"><h3>الحساب والأمان</h3><p class="muted-line">تسجيل الدخول صار باسم مستخدم وكلمة مرور. Navo يستخدم Supabase Auth خلف الكواليس بدون ما يظهر البريد للمستخدم.</p><div class="cloud-status-row"><span id="cloudStatus">Local Mode</span><b id="cloudEmail">غير متصل</b></div><div class="settings-mini-grid account-grid"><div><span>الحالة</span><b id="accountModeMini">Local</b></div><div><span>المزامنة</span><b id="syncStateMini">Ready</b></div></div><div class="two"><button id="cloudSyncNow" class="ghost" type="button">مزامنة الآن</button><button id="cloudDisconnect" class="ghost" type="button">فصل السحابة</button></div><button id="logout" class="danger full" type="button">تسجيل خروج</button></article>
         </div>
       </section>
@@ -332,7 +337,22 @@
     </form>
   </dialog>
 
-  <div id="cmd" class="cmd hidden"><div class="cmd-box glass"><input id="cmdInput" placeholder="اكتب أمر: focus, task, brain, insights"><div id="cmdList"></div></div></div>
+  <dialog id="shareDialog" class="share-dialog">
+    <form method="dialog" class="modal glass share-modal">
+      <button class="close" type="button" id="closeShare">×</button>
+      <span class="eyebrow">WEEKLY RECAP</span>
+      <div id="weeklyShareCard" class="weekly-share-card">
+        <img src="assets/navo-mark.svg" alt="Navo">
+        <h2>Weekly Focus</h2>
+        <strong id="shareFocusHours">0h</strong>
+        <p id="shareLine">Focus without noise.</p>
+        <div><span id="shareTasks">0 مهام</span><span id="shareStreak">1 streak</span><span id="shareRank">Rookie</span></div>
+      </div>
+      <button id="downloadShareCard" class="primary full" type="button">تحميل البطاقة PNG</button>
+    </form>
+  </dialog>
+
+  <div id="cmd" class="cmd hidden"><div class="cmd-box glass"><input id="cmdInput" placeholder="اكتب أمر: /focus, /task, /brain, /deep, /summary"><div id="cmdList"></div></div></div>
   <script src="navo-config.js"></script>
   <script src="app.js"></script>
 </body>
