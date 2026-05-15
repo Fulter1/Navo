@@ -14,7 +14,7 @@
 
   const defaultState = () => ({
     profile: { displayName: 'Navo User', bio: 'Personal Calm Operating System', avatar: '' },
-    settings: { theme: 'dark', accent: '#35d7ff', accent2: '#0b66e4', graphics: 'auto', focusMinutes: 25, breakMinutes: 5, sound: 'none' },
+    settings: { theme: 'dark', accent: '#35d7ff', accent2: '#0b66e4', graphics: 'auto', focusMinutes: 25, breakMinutes: 5, sound: 'none', notifications: true, notifySound: 'chime', notifyVolume: 0.35 },
     spaces: structuredClone(defaultSpaces),
     tasks: [],
     stats: { xp: 0, sessions: 0, focusMinutes: 0, streak: 1, lastActive: todayISO() },
@@ -140,6 +140,7 @@
   function loginAs(username, remember) {
     currentUser = username;
     state = readJson(dataKey(username), null) || defaultState();
+    state.settings = { ...defaultState().settings, ...(state.settings || {}) };
     if (!state.spaces?.length) state.spaces = structuredClone(defaultSpaces);
     if (remember) writeJson(STORAGE_SESSION, { username, at: Date.now() });
     authView.classList.add('hidden'); appView.classList.remove('hidden');
@@ -233,20 +234,44 @@
 
   function renderHome() {
     const s = stats();
+    const nextTasks = state.tasks.filter(t=>!t.done).slice(0,5);
+    const focusPct = Math.min(100, Math.round((state.stats.focusMinutes / Math.max(1, state.stats.focusMinutes + 120)) * 100));
     $('#home').innerHTML = `
-      <div class="grid home-grid">
-        <article class="hero glass-card span-2">
-          <p class="chip">CURRENT SIGNAL</p>
-          <h2>${greeting()}، ${escapeHtml(state.profile.displayName || currentUser)}.</h2>
-          <p>${s.high ? `أهم شيء الآن: ${escapeHtml(s.high.title)}. خلها بداية هادئة وبسيطة.` : 'مساحتك جاهزة لبداية هادئة. أضف أول مهمة وابدأ.'}</p>
-          <div class="hero-actions"><button class="btn primary" data-action="start-focus">ابدأ تركيز</button><button class="btn ghost" data-action="new-task">＋ مهمة</button><button class="btn ghost" data-action="go-tasks">فتح المهام</button></div>
-        </article>
-        <article class="card glass-card time-card"><span>الوقت الآن</span><strong id="liveClock">--:--</strong><small id="liveDate">—</small></article>
-        <article class="card glass-card stat"><span>إنجاز اليوم</span><strong>${s.pct}%</strong><div class="progress-line"><i style="width:${s.pct}%"></i></div></article>
-        <article class="card glass-card ai-card span-2"><div class="section-head"><div><p class="chip">AI PULSE</p><h3>اقتراحات ذكية</h3></div><button class="btn ghost small" data-action="refresh-home">تحديث</button></div><div class="ai-list">${aiSuggestions().map(x=>`<div class="ai-item"><b>✦</b><p>${x}</p></div>`).join('')}</div></article>
-        <article class="card glass-card stat"><span>XP</span><strong>${state.stats.xp}</strong><small>${rank()}</small></article>
-        <article class="card glass-card stat"><span>جلسات التركيز</span><strong>${state.stats.sessions}</strong><small>${state.stats.focusMinutes} دقيقة</small></article>
-        <article class="card glass-card span-2"><div class="section-head"><h3>المهام القادمة</h3><button class="link-btn" data-action="go-tasks">كل المهام</button></div><div class="task-list">${renderTaskItems(state.tasks.filter(t=>!t.done).slice(0,4), true)}</div></article>
+      <div class="dashboard-shell">
+        <section class="dash-hero glass-card">
+          <div class="dash-copy">
+            <p class="chip">NAVO COMMAND CENTER</p>
+            <h2>${greeting()}، ${escapeHtml(state.profile.displayName || currentUser)}.</h2>
+            <p>${s.high ? `ابدأ بـ <b>${escapeHtml(s.high.title)}</b> وخله إنجازك الأساسي اليوم.` : 'اليوم نظيف. أضف مهمة واحدة وخلي Navo يرتب إيقاعك.'}</p>
+            <div class="hero-actions"><button class="btn primary" data-action="start-focus">ابدأ جلسة تركيز</button><button class="btn ghost" data-action="new-task">＋ مهمة سريعة</button></div>
+          </div>
+          <div class="dash-orb" style="--p:${s.pct}" aria-hidden="true"><span>${s.pct}%</span><small>إنجاز اليوم</small></div>
+        </section>
+        <section class="metric-grid">
+          <article class="metric-card glass-card"><span>الوقت الآن</span><strong id="liveClock">--:--</strong><small id="liveDate">—</small></article>
+          <article class="metric-card glass-card"><span>المهام المفتوحة</span><strong>${s.openToday.length}</strong><small>${s.done} منجز</small></article>
+          <article class="metric-card glass-card"><span>XP</span><strong>${state.stats.xp}</strong><small>${rank()}</small></article>
+          <article class="metric-card glass-card"><span>تركيزك</span><strong>${state.stats.sessions}</strong><small>${state.stats.focusMinutes} دقيقة</small></article>
+        </section>
+        <section class="dashboard-grid">
+          <article class="panel-card glass-card focus-preview">
+            <div class="section-head"><div><p class="chip">FOCUS FLOW</p><h3>جلسة مقترحة</h3></div><button class="btn primary small" data-action="start-focus">ابدأ</button></div>
+            <div class="mini-focus-ring"><b>${state.settings.focusMinutes}:00</b><span>Deep Work</span></div>
+            <p class="muted">${s.high ? escapeHtml(s.high.title) : 'اختر مهمة واحدة فقط وابدأ بهدوء.'}</p>
+          </article>
+          <article class="panel-card glass-card">
+            <div class="section-head"><div><p class="chip">NEXT UP</p><h3>قائمة اليوم</h3></div><button class="link-btn" data-action="go-tasks">كل المهام</button></div>
+            <div class="task-list compact-list">${renderTaskItems(nextTasks, true)}</div>
+          </article>
+          <article class="panel-card glass-card ai-card">
+            <div class="section-head"><div><p class="chip">AI PULSE</p><h3>اقتراحات هادئة</h3></div><button class="btn ghost small" data-action="refresh-home">تحديث</button></div>
+            <div class="ai-list">${aiSuggestions().map(x=>`<div class="ai-item"><b>✦</b><p>${x}</p></div>`).join('')}</div>
+          </article>
+          <article class="panel-card glass-card space-preview">
+            <div class="section-head"><div><p class="chip">SPACES</p><h3>مساحاتك</h3></div><button class="link-btn" data-action="go-spaces">فتح</button></div>
+            <div class="space-pills">${state.spaces.slice(0,4).map(sp=>`<span style="--space-color:${sp.color}">${escapeHtml(sp.name)}</span>`).join('')}</div>
+          </article>
+        </section>
       </div>`;
     $('#home').onclick = handleAction;
     updateClockOnly();
@@ -275,28 +300,37 @@
   function priorityScore(p){return p==='high'?3:p==='medium'?2:1}
 
   function renderFocus() {
-    const open = state.tasks.filter(t=>!t.done);
     const target = stats().high;
+    const progress = Math.max(0, Math.min(100, Math.round((1 - (focusLeft / Math.max(1, focusTotal))) * 100)));
     $('#focus').innerHTML = `
-      <div class="grid focus-layout">
-        <section id="focusRoom" class="focus-room glass-card ${focusRunning?'running':''}">
-          <p class="chip">FOCUS ROOM</p>
-          <h2 id="focusTaskText">${target ? escapeHtml(target.title) : 'مهمة واحدة فقط'}</h2>
-          <p>Space للتشغيل/الإيقاف • Enter للتشغيل • Esc للوضع العميق</p>
-          <div class="timer-ring"><strong id="focusClock">${formatTime(focusLeft)}</strong><small>جلسة تركيز</small><i class="focus-orbit" aria-hidden="true"></i></div>
-          <div class="focus-controls"><button class="btn primary" data-action="focus-start">ابدأ</button><button class="btn ghost" data-action="focus-pause">إيقاف</button><button class="btn ghost" data-action="focus-reset">إعادة</button><button class="btn ghost" data-action="deep-focus">Deep Mode</button></div>
-          <div class="sound-row"><button class="${state.settings.sound==='none'?'active':''}" data-action="sound" data-sound="none">Off</button><button class="${state.settings.sound==='rain'?'active':''}" data-action="sound" data-sound="rain">Rain</button><button class="${state.settings.sound==='cafe'?'active':''}" data-action="sound" data-sound="cafe">Cafe</button><button class="${state.settings.sound==='space'?'active':''}" data-action="sound" data-sound="space">Space</button></div>
+      <div class="premium-focus-shell">
+        <section id="focusRoom" class="focus-room glass-card ${focusRunning?'running':''}" style="--focus-progress:${progress}">
+          <div class="focus-bg-stars" aria-hidden="true"></div>
+          <p class="chip">DEEP FOCUS MODE</p>
+          <h2 id="focusTaskText">${target ? escapeHtml(target.title) : 'جلسة هادئة بدون تشتيت'}</h2>
+          <p class="focus-subtitle">مهمة واحدة. نفس هادئ. إنجاز واضح.</p>
+          <div class="timer-ring premium-ring"><strong id="focusClock">${formatTime(focusLeft)}</strong><small>جلسة تركيز</small><i class="focus-orbit" aria-hidden="true"></i></div>
+          <div class="focus-controls premium-controls"><button class="btn primary" data-action="focus-start">▶ ابدأ</button><button class="btn ghost" data-action="focus-pause">Ⅱ إيقاف</button><button class="btn ghost" data-action="focus-reset">↺ إعادة</button><button class="btn ghost" data-action="deep-focus">⛶ شاشة كاملة</button></div>
+          <div class="sound-row premium-sounds"><button class="${state.settings.sound==='none'?'active':''}" data-action="sound" data-sound="none">بدون</button><button class="${state.settings.sound==='rain'?'active':''}" data-action="sound" data-sound="rain">مطر</button><button class="${state.settings.sound==='cafe'?'active':''}" data-action="sound" data-sound="cafe">كافيه</button><button class="${state.settings.sound==='space'?'active':''}" data-action="sound" data-sound="space">فضاء</button></div>
         </section>
-        <aside class="card glass-card"><p class="chip">SESSION</p><h3>إعدادات الجلسة</h3><label>مدة التركيز<input id="focusMinutesInput" type="number" min="5" max="90" value="${state.settings.focusMinutes}"></label><label>مدة الراحة<input id="breakMinutesInput" type="number" min="1" max="30" value="${state.settings.breakMinutes}"></label><div class="data-box">الجلسات: <b>${state.stats.sessions}</b><br>دقائق التركيز: <b>${state.stats.focusMinutes}</b><br>المهمة المقترحة: <b>${target ? escapeHtml(target.title) : 'لا يوجد'}</b></div></aside>
+        <aside class="focus-side glass-card">
+          <p class="chip">SESSION SETUP</p>
+          <h3>إعداد الجلسة</h3>
+          <label>مدة التركيز<input id="focusMinutesInput" type="number" min="5" max="90" value="${state.settings.focusMinutes}"></label>
+          <label>مدة الراحة<input id="breakMinutesInput" type="number" min="1" max="30" value="${state.settings.breakMinutes}"></label>
+          <div class="focus-stats-row"><div><b>${state.stats.sessions}</b><span>جلسات</span></div><div><b>${state.stats.focusMinutes}</b><span>دقيقة</span></div></div>
+          <div class="data-box">اختصار التشغيل: Space<br>الخروج من الشاشة الكاملة: Esc</div>
+        </aside>
       </div>`;
     $('#focus').onclick = handleAction;
     $('#focusMinutesInput').addEventListener('change', e => { state.settings.focusMinutes = clamp(+e.target.value,5,90); resetFocus(); saveState(); renderFocus(); });
     $('#breakMinutesInput').addEventListener('change', e => { state.settings.breakMinutes = clamp(+e.target.value,1,30); saveState(); });
   }
+
   function startFocus(){ if(focusRunning) return; focusRunning=true; playTone(420,0.05); focusTimer=setInterval(()=>{ focusLeft--; updateFocusClock(); if(focusLeft<=0) completeFocus(); },1000); $('#focusRoom')?.classList.add('running'); }
   function pauseFocus(){ focusRunning=false; clearInterval(focusTimer); $('#focusRoom')?.classList.remove('running'); playTone(220,0.04); }
   function resetFocus(){ pauseFocus(); focusTotal=state.settings.focusMinutes*60; focusLeft=focusTotal; updateFocusClock(); }
-  function completeFocus(){ pauseFocus(); state.stats.sessions++; state.stats.focusMinutes += state.settings.focusMinutes; state.stats.xp += 50; saveState(); toast('جلسة ممتازة. زاد XP +50'); resetFocus(); renderAll(); playTone(660,0.12); }
+  function completeFocus(){ pauseFocus(); state.stats.sessions++; state.stats.focusMinutes += state.settings.focusMinutes; state.stats.xp += 50; saveState(); toast('جلسة ممتازة. زاد XP +50', true); resetFocus(); renderAll(); playTone(660,0.12); }
   function updateFocusClock(){ const el=$('#focusClock'); if(el) el.textContent=formatTime(focusLeft); }
   function toggleDeepFocus(){ document.body.classList.toggle('deep-focus'); }
   function formatTime(sec){ const m=Math.floor(sec/60), s=sec%60; return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
@@ -311,9 +345,25 @@
     $('#profile').onclick = handleAction;
   }
   function renderSettings() {
-    $('#settings').innerHTML = `<div class="section-head"><div><p class="chip">SETTINGS</p><h2>الإعدادات</h2></div><button class="btn danger" data-action="logout">تسجيل خروج</button></div><div class="grid settings-grid"><article class="settings-card glass-card"><h3>الثيم والهوية</h3><p class="muted">ثيم مصمم للوضعين بدون تضارب أو ألوان متعبة.</p><button class="btn ghost full" data-action="toggle-theme">تبديل الوضع الليلي / النهاري</button><label>لون الهوية<div class="color-picks"><button title="Navo Blue" style="--c1:#35d7ff;--c2:#0b66e4" data-action="accent" data-a="#35d7ff" data-b="#0b66e4"></button><button title="Sunset" style="--c1:#ff8a3d;--c2:#ff3d81" data-action="accent" data-a="#ff8a3d" data-b="#ff3d81"></button><button title="Mint" style="--c1:#39d98a;--c2:#13a89e" data-action="accent" data-a="#39d98a" data-b="#13a89e"></button><button title="Violet" style="--c1:#a78bfa;--c2:#6d5dfc" data-action="accent" data-a="#a78bfa" data-b="#6d5dfc"></button></div></label></article><article class="settings-card glass-card"><h3>الأداء والسلاسة</h3><label>وضع الرسوم<select id="graphicsMode"><option value="auto">تلقائي</option><option value="full">كامل</option><option value="low">خفيف</option></select></label><p class="muted">الوضع الخفيف يقلل الـ blur والـ glow عشان الجوال والماك يكونون أسرع.</p></article><article class="settings-card glass-card"><h3>الإشعارات والصوت</h3><p class="muted">تنبيهات قصيرة ومحفزة بدون إزعاج.</p><div class="notif-panel"><div class="notif-row"><div><b>صوت الإنجاز</b><small>نغمة خفيفة عند الإنجاز</small></div><button class="btn ghost small" data-action="test-sound">تجربة</button></div><div class="notif-row"><div><b>رسالة تحفيزية</b><small>تظهر كتنبيه سريع</small></div><button class="btn primary small" data-action="motivate">أرسل الآن</button></div></div></article><article class="settings-card glass-card"><h3>ربط البيانات</h3><div class="data-box"><b>المستخدم الحالي:</b> @${escapeHtml(currentUser)}<br><b>طريقة الحفظ:</b> Local-first لكل مستخدم<br><b>Cloud:</b> Supabase جاهز كمرحلة لاحقة</div><button class="btn ghost full" data-action="export-data">تصدير البيانات</button><label class="btn ghost full" style="margin-top:10px;text-align:center">استيراد البيانات<input id="importData" type="file" accept="application/json" hidden></label></article><article class="settings-card glass-card"><h3>البيانات الخطرة</h3><p class="muted">استخدمها فقط لو تبي تبدأ من جديد.</p><button class="btn danger full" data-action="reset-user">تصفير بيانات المستخدم</button></article></div>`;
+    const notifOn = state.settings.notifications !== false;
+    $('#settings').innerHTML = `
+      <div class="settings-hero glass-card">
+        <div><p class="chip">CONTROL ROOM</p><h2>إعدادات Navo</h2><p>تحكم بالثيم، الأداء، الإشعارات، والصوت من مكان واحد.</p></div>
+        <button class="btn danger" data-action="logout">تسجيل خروج</button>
+      </div>
+      <div class="grid settings-grid premium-settings">
+        <article class="settings-card glass-card wide-setting"><h3>الثيم والهوية</h3><p class="muted">اختر إحساس Navo المناسب لك بدون ما يخرب الوضع النهاري أو الليلي.</p><div class="setting-actions"><button class="btn ghost" data-action="toggle-theme">تبديل الليلي / النهاري</button><span class="setting-status">الوضع الحالي: ${state.settings.theme === 'light' ? 'نهاري' : 'ليلي'}</span></div><label>ألوان الهوية<div class="color-picks big-picks"><button title="Navo Blue" style="--c1:#35d7ff;--c2:#0b66e4" data-action="accent" data-a="#35d7ff" data-b="#0b66e4"></button><button title="Sunset" style="--c1:#ff8a3d;--c2:#ff3d81" data-action="accent" data-a="#ff8a3d" data-b="#ff3d81"></button><button title="Mint" style="--c1:#39d98a;--c2:#13a89e" data-action="accent" data-a="#39d98a" data-b="#13a89e"></button><button title="Violet" style="--c1:#a78bfa;--c2:#6d5dfc" data-action="accent" data-a="#a78bfa" data-b="#6d5dfc"></button></div></label></article>
+        <article class="settings-card glass-card"><h3>الأداء والسلاسة</h3><label>وضع الرسوم<select id="graphicsMode"><option value="auto">تلقائي</option><option value="full">كامل</option><option value="low">خفيف</option></select></label><p class="muted">الوضع الخفيف يقلل الـ blur والـ glow ويخلي الجوال أسرع.</p></article>
+        <article class="settings-card glass-card notifications-card"><h3>الإشعارات والصوت</h3><p class="muted">تنبيهات فخمة ومختصرة، وتقدر تطفيها أو تغير نغمتها.</p><div class="notif-control"><label class="switch-row"><span>تشغيل الإشعارات</span><input id="notificationsToggle" type="checkbox" ${notifOn?'checked':''}></label><label>نغمة الإشعار<select id="notifySound"><option value="chime">Chime ناعمة</option><option value="pulse">Pulse مستقبلية</option><option value="bell">Bell خفيفة</option><option value="none">بدون صوت</option></select></label><label>مستوى الصوت<input id="notifyVolume" type="range" min="0" max="1" step="0.05" value="${state.settings.notifyVolume ?? 0.35}"></label></div><div class="notif-panel"><div class="notif-row"><div><b>تجربة الإشعار</b><small>يعرض الشكل الجديد مع النغمة المختارة</small></div><button class="btn primary small" data-action="test-notification">جرب</button></div><div class="notif-row"><div><b>رسالة تحفيزية</b><small>تنبيه سريع يطلع بأسلوب Navo</small></div><button class="btn ghost small" data-action="motivate">أرسل الآن</button></div></div></article>
+        <article class="settings-card glass-card"><h3>البيانات</h3><div class="data-box"><b>المستخدم:</b> @${escapeHtml(currentUser)}<br><b>الحفظ:</b> Local-first لكل مستخدم<br><b>Cloud:</b> Supabase جاهز كمرحلة لاحقة</div><button class="btn ghost full" data-action="export-data">تصدير البيانات</button><label class="btn ghost full" style="margin-top:10px;text-align:center">استيراد البيانات<input id="importData" type="file" accept="application/json" hidden></label></article>
+        <article class="settings-card glass-card danger-zone"><h3>منطقة حساسة</h3><p class="muted">تصفير بيانات المستخدم الحالي والبدء من جديد.</p><button class="btn danger full" data-action="reset-user">تصفير بيانات المستخدم</button></article>
+      </div>`;
     $('#graphicsMode').value = state.settings.graphics || 'auto';
     $('#graphicsMode').addEventListener('change', e => { state.settings.graphics=e.target.value; applySettings(); saveState(); });
+    $('#notificationsToggle').addEventListener('change', e => { state.settings.notifications = e.target.checked; saveState(); toast(e.target.checked ? 'تم تشغيل الإشعارات' : 'تم إيقاف الإشعارات', true); });
+    $('#notifySound').value = state.settings.notifySound || 'chime';
+    $('#notifySound').addEventListener('change', e => { state.settings.notifySound = e.target.value; saveState(); playNotifySound(); });
+    $('#notifyVolume').addEventListener('input', e => { state.settings.notifyVolume = +e.target.value; saveState(); });
     $('#importData').addEventListener('change', importData);
     $('#settings').onclick = handleAction;
   }
@@ -328,12 +378,13 @@
     if (a==='clear-done') { state.tasks = state.tasks.filter(t=>!t.done); saveState(); renderTasks(); toast('تم حذف المهام المنجزة'); }
     if (a==='smart-sort') { smartSort(); renderTasks(); toast('تم الترتيب حسب الأولوية'); }
     if (a==='go-tasks') navigate('tasks');
+    if (a==='go-spaces') navigate('spaces');
     if (a==='start-focus') { navigate('focus'); startFocus(); }
     if (a==='focus-start') startFocus();
     if (a==='focus-pause') pauseFocus();
     if (a==='focus-reset') resetFocus();
     if (a==='deep-focus') toggleDeepFocus();
-    if (a==='sound') { state.settings.sound=el.dataset.sound; saveState(); renderFocus(); if(state.settings.sound!=='none') playTone(360,0.05); }
+    if (a==='sound') { state.settings.sound=el.dataset.sound; saveState(); renderFocus(); if(state.settings.sound!=='none') playAmbientTone(state.settings.sound); }
     if (a==='new-space') $('#spaceDialog').showModal();
     if (a==='delete-space') deleteSpace(id);
     if (a==='save-profile') saveProfile();
@@ -343,7 +394,7 @@
     if (a==='export-data') exportData();
     if (a==='reset-user') resetUserData();
     if (a==='refresh-home') renderHome();
-    if (a==='test-sound') { playTone(660, 0.12); toast('الصوت شغال — نغمة خفيفة.'); }
+    if (a==='test-sound' || a==='test-notification') { toast('هذا شكل الإشعار الجديد — نغمة Navo جاهزة.', true); }
     if (a==='motivate') { playTone(520, 0.08); toast(motivationalLine()); }
   }
 
@@ -433,9 +484,11 @@
     return lines[Math.floor(Math.random() * lines.length)];
   }
 
-  function playTone(freq=440,duration=.05){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.frequency.value=freq; g.gain.value=.025; o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(()=>{o.stop();},duration*1000); }catch{} }
+  function playTone(freq=440,duration=.05, volume=.025, type='sine'){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=volume; o.connect(g); g.connect(audioCtx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration); setTimeout(()=>{o.stop();},duration*1000); }catch{} }
+  function playAmbientTone(kind='space'){ const map={rain:[280,.06,.018,'triangle'],cafe:[340,.06,.018,'sine'],space:[520,.08,.018,'sine']}; const x=map[kind]||map.space; playTone(...x); }
+  function playNotifySound(){ if(state.settings.notifySound === 'none') return; const vol = Math.max(0, Math.min(1, state.settings.notifyVolume ?? .35)) * .06; const s = state.settings.notifySound || 'chime'; if(s==='pulse'){ playTone(420,.06,vol,'sine'); setTimeout(()=>playTone(620,.07,vol*.8,'sine'),75); } else if(s==='bell'){ playTone(740,.12,vol,'triangle'); } else { playTone(560,.07,vol,'sine'); setTimeout(()=>playTone(880,.08,vol*.75,'sine'),85); } }
   function showMsg(t){ $('#authMsg').textContent=t; }
-  function toast(t){ toastEl.textContent=t; toastEl.classList.add('show'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),2400); }
+  function toast(t, force=false){ if(state?.settings?.notifications === false && !force) return; toastEl.innerHTML=`<b>Navo</b><span>${escapeHtml(t)}</span>`; toastEl.classList.add('show'); if(state?.settings?.notifications !== false) playNotifySound(); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),3000); }
   function escapeHtml(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
   function escapeAttr(v=''){return escapeHtml(v).replace(/`/g,'&#096;');}
 })();
