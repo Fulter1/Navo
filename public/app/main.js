@@ -228,55 +228,6 @@ function renderHome(){
           </div>
         </div>
       </section>
-      <section class="two grid">
-        <div class="panel glass">
-          <div class="section-head">
-            <h2>نشاطك الأخير</h2>
-            <span class="chip">LIVE</span>
-          </div>
-
-          <div class="activity-feed">
-            <div class="activity-item">
-              <div class="activity-icon">✅</div>
-              <div>
-                <b>${done} مهام منجزة</b>
-                <p class="muted">كل إنجاز يرفع مستواك ويقربك لهدفك.</p>
-              </div>
-            </div>
-
-            <div class="activity-item">
-              <div class="activity-icon">🎯</div>
-              <div>
-                <b>${open} مهام مفتوحة</b>
-                <p class="muted">ابدأ بمهمة وحدة فقط الآن.</p>
-              </div>
-            </div>
-
-            <div class="activity-item">
-              <div class="activity-icon">⏳</div>
-              <div>
-                <b>${me.focusMinutes} دقيقة تركيز</b>
-                <p class="muted">${me.focusSessions} جلسة مكتملة.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="goal-card glass">
-          <span class="chip">TODAY GOAL</span>
-          <h3>${open > 0 ? "أنهِ مهمتين اليوم" : "أضف هدف جديد"}</h3>
-          <p class="muted">
-            ${open > 0 ? "كل مهمة تنجزها تعطيك XP وتحرك مستواك للأعلى." : "أنت مخلص كل شيء تقريبًا، وقت ممتاز تبدأ هدف جديد."}
-          </p>
-
-          <div class="goal-check">
-            <span>${done} منجز</span>
-            <span>${open} مفتوح</span>
-            <span>Level ${me.level}</span>
-          </div>
-        </div>
-      </section>
-
     </div>
   `;
   bindActions($("#home"));
