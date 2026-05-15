@@ -20,6 +20,7 @@ let focusStudyFullscreen = false;
 let focusSettingsOpen = localStorage.getItem("navo_focus_settings_open") !== "false";
 let navoAudioCtx = null;
 let focusTickFlip = false;
+
 let cleanFocusFullscreen = false;
 
 const localSpacesKey = "navo_local_spaces";
@@ -292,6 +293,13 @@ function renderFocus(){
     : "ركز على مادة وحدة فقط. إذا خلص الوقت يبدأ البريك تلقائيًا.";
   const stateText = isBreak ? "BREAK" : "STUDY";
   const focusMinutesValue = Math.round(focusTotal / 60);
+  const quotes = [
+    "ابدأ بخمس دقائق، والباقي يسهل.",
+    "لا تذاكر كل شيء، ذاكر الشيء القادم فقط.",
+    "هدوءك أهم من سرعتك.",
+    "جلسة واحدة مركزة أفضل من ساعة مشتتة."
+  ];
+  const quote = quotes[(focusSessionDone + new Date().getDate()) % quotes.length];
 
   $("#focusPage").innerHTML = `
     <div class="focus-pro ${focusSettingsOpen ? "" : "settings-closed"}">
@@ -311,7 +319,11 @@ function renderFocus(){
           </div>
 
           <div id="focusMiniBar" class="focus-mini-bar" style="--progress-width:${progress}%"><i></i></div>
+          
+          <div class="focus-quote">${quote}</div>
           <div class="focus-muted-line">${focusStudyFullscreen ? "وضع الشاشة الكاملة — Esc للخروج" : "اضغط تكبير الشاشة لتجربة مذاكرة أبسط"}</div>
+
+          
 
           <div class="focus-buttons">
             <button class="btn primary" data-action="toggleFocus">${focusRunning ? "إيقاف مؤقت" : "ابدأ"}</button>
@@ -1045,6 +1057,9 @@ function bindStatic(){
 
   $$(".nav,.mnav").forEach(b => b.onclick = () => setPage(b.dataset.page));
 }
+
+
+
 
 
 function toggleFocusSettings(){
