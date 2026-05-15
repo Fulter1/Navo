@@ -1,1 +1,15 @@
-{"name":"Navo Reborn","short_name":"Navo","start_url":"./index.html","display":"standalone","background_color":"#080A12","theme_color":"#080A12","icons":[{"src":"assets/navo-icon.png","sizes":"192x192","type":"image/png"},{"src":"assets/navo-icon.png","sizes":"512x512","type":"image/png"}]}
+{
+  "name": "Navo",
+  "short_name": "Navo",
+  "description": "Personal workspace for tasks, focus and spaces.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07090f",
+  "theme_color": "#07090f",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "assets/navo-icon.png", "sizes": "274x278", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
