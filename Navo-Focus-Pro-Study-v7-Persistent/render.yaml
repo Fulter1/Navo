@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: navo
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.1
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OWNER_USERNAME
+        value: Fulter
+      - key: OWNER_PASSWORD
+        value: Fulter@12345
+      - key: ADMIN_USERNAME
+        value: Fulter
+      - key: ADMIN_PASSWORD
+        value: Fulter@12345
+      - key: DATABASE_PATH
+        value: ./data/navo.sqlite
+      - key: TELEGRAM_BOT_TOKEN
+        value: ""
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        value: ""
