@@ -163,3 +163,18 @@ dialog::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(10px)}
   .stats{grid-template-columns:1fr}
   .top-actions{grid-template-columns:1fr}
 }
+
+textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:17px;background:rgba(0,0,0,.18);color:var(--text);outline:0;padding:12px 14px;resize:vertical;font:inherit}
+body.light textarea{background:rgba(255,255,255,.78)}
+.ticket{padding:14px;border-radius:22px;border:1px solid var(--line);background:rgba(255,255,255,.035);margin-bottom:10px}
+.ticket h3{margin:0 0 8px}
+.ticket p{white-space:pre-wrap;color:var(--muted);line-height:1.7}
+.ticket-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.admin-tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#03121A}
+.filters{display:grid;grid-template-columns:1fr 170px 170px;gap:10px;margin-bottom:14px}
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.role-owner{color:#FFD166}
+.badge.owner{color:#FFD166}
+.audit-line{padding:12px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.035);margin-bottom:8px}
+@media(max-width:760px){.filters,.details-grid{grid-template-columns:1fr}}

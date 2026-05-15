@@ -123,6 +123,7 @@ function renderAll(){
   renderSpaces();
   renderProfile();
   renderSettings();
+  renderSupport();
 }
 
 function renderHome(){
@@ -365,6 +366,7 @@ function bindActions(root=document){
       if(action === "focusPage") setPage("focus");
       if(action === "theme") toggleTheme();
       if(action === "admin") location.href = "/admin";
+      if(action === "openSupport") openSupport();
       if(action === "color") setColor(el.dataset.c1, el.dataset.c2);
       if(action === "saveProfile") saveProfile();
       if(action === "toggleTask") toggleTask(el.dataset.id, el.dataset.done === "true");
@@ -385,7 +387,8 @@ function setPage(next){
     focus: "focusPage",
     spaces: "spacesPage",
     profile: "profilePage",
-    settings: "settingsPage"
+    settings: "settingsPage",
+    support: "supportPage"
   };
 
   $$(".page").forEach(p => p.classList.toggle("active", p.id === map[next]));
@@ -397,7 +400,8 @@ function setPage(next){
     focus:"التركيز",
     spaces:"المساحات",
     profile:"البروفايل",
-    settings:"الإعدادات"
+    settings:"الإعدادات",
+    support:"الدعم"
   };
   $("#pageTitle").textContent = titles[next] || "Navo";
   renderAll();
@@ -552,6 +556,57 @@ function closeMenu(){
   $("#overlay").classList.remove("show");
 }
 
+
+function renderSupport(){
+  const el = $("#supportPage");
+  if(!el) return;
+  el.innerHTML = `
+    <div class="two grid">
+      <section class="panel glass">
+        <span class="chip">SUPPORT CENTER</span>
+        <h2>الدعم والاقتراحات</h2>
+        <p class="muted">ارسل مشكلة أو اقتراح، وبتظهر مباشرة في لوحة الأدمن.</p>
+        <button class="btn primary full" data-action="openSupport">+ تذكرة جديدة</button>
+      </section>
+      <section class="panel glass">
+        <h2>وش تقدر ترسل؟</h2>
+        <div class="data-box">
+          مشكلة في الموقع<br>
+          اقتراح تطوير<br>
+          شكوى<br>
+          طلب ميزة جديدة
+        </div>
+      </section>
+    </div>
+  `;
+  bindActions(el);
+}
+
+function openSupport(){
+  $("#ticketType").value = "problem";
+  $("#ticketTitle").value = "";
+  $("#ticketMessage").value = "";
+  $("#supportDialog").showModal();
+}
+
+async function submitSupport(e){
+  e.preventDefault();
+  try{
+    const data = await request("/api/support/tickets", {
+      method:"POST",
+      body: JSON.stringify({
+        type: $("#ticketType").value,
+        title: $("#ticketTitle").value,
+        message: $("#ticketMessage").value
+      })
+    });
+    $("#supportDialog").close();
+    toast("تم إرسال التذكرة رقم #" + data.ticketId);
+  }catch{
+    toast("تعذر إرسال التذكرة");
+  }
+}
+
 function bindStatic(){
   $("#loginTab").onclick = () => setMode("login");
   $("#registerTab").onclick = () => setMode("register");
@@ -591,6 +646,8 @@ function bindStatic(){
   $("#themeBtn").onclick = toggleTheme;
   $("#closeTask").onclick = () => $("#taskDialog").close();
   $("#taskForm").onsubmit = createTask;
+  $("#closeSupport").onclick = () => $("#supportDialog").close();
+  $("#supportForm").onsubmit = submitSupport;
 
   $$(".nav,.mnav").forEach(b => b.onclick = () => setPage(b.dataset.page));
 }

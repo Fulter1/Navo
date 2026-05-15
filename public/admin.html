@@ -2,38 +2,75 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Navo Admin</title>
+  <title>Navo Admin Pro</title>
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="toast" class="toast"></div>
+
   <main id="admin" class="admin-layout hidden">
     <header class="admin-head glass">
-      <div><span class="chip">ADMIN PANEL</span><h1>لوحة تحكم Navo</h1><p class="muted">تحكم بالمستخدمين، XP، Level، الحالة والرتب.</p></div>
-      <div><button id="homeBtn" class="btn">الموقع</button> <button id="logout" class="btn">خروج</button></div>
+      <div>
+        <span class="chip">ADMIN PRO</span>
+        <h1>لوحة تحكم Navo</h1>
+        <p class="muted">Owner حماية كاملة + Users + Tickets + Logs.</p>
+      </div>
+      <div>
+        <button id="homeBtn" class="btn">الموقع</button>
+        <button id="logout" class="btn">خروج</button>
+      </div>
     </header>
 
     <section class="stats grid">
       <div class="stat glass"><span class="muted">Users</span><strong id="sUsers">0</strong></div>
       <div class="stat glass"><span class="muted">Active</span><strong id="sActive">0</strong></div>
-      <div class="stat glass"><span class="muted">Banned</span><strong id="sBanned">0</strong></div>
-      <div class="stat glass"><span class="muted">Focus</span><strong id="sFocus">0m</strong></div>
+      <div class="stat glass"><span class="muted">Tickets</span><strong id="sTickets">0</strong></div>
+      <div class="stat glass"><span class="muted">New</span><strong id="sTicketsNew">0</strong></div>
     </section>
 
-    <section class="panel glass table">
-      <div class="section-head"><h2>المستخدمين</h2><button id="refresh" class="btn primary small">تحديث</button></div>
-      <table>
-        <thead><tr><th>ID</th><th>المستخدم</th><th>الدور</th><th>الحالة</th><th>XP</th><th>Level</th><th>Focus</th><th>إجراءات</th></tr></thead>
-        <tbody id="users"></tbody>
-      </table>
+    <div class="admin-tabs">
+      <button class="btn primary active" data-tab="users">المستخدمين</button>
+      <button class="btn" data-tab="tickets">التذاكر</button>
+      <button class="btn" data-tab="audit">السجل</button>
+    </div>
+
+    <section id="usersTab" class="panel glass">
+      <div class="section-head"><h2>المستخدمين</h2><button id="refreshUsers" class="btn primary small">تحديث</button></div>
+      <div class="filters">
+        <input id="searchUsers" placeholder="بحث باسم المستخدم">
+        <select id="roleFilter"><option value="">كل الرتب</option><option value="owner">Owner</option><option value="admin">Admin</option><option value="user">User</option></select>
+        <select id="statusFilter"><option value="">كل الحالات</option><option value="active">Active</option><option value="banned">Banned</option></select>
+      </div>
+      <div class="table">
+        <table>
+          <thead><tr><th>ID</th><th>المستخدم</th><th>الدور</th><th>الحالة</th><th>XP</th><th>Level</th><th>Focus</th><th>إجراءات</th></tr></thead>
+          <tbody id="users"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ticketsTab" class="panel glass hidden">
+      <div class="section-head"><h2>التذاكر والاقتراحات</h2><button id="refreshTickets" class="btn primary small">تحديث</button></div>
+      <div class="filters">
+        <select id="ticketStatusFilter"><option value="">كل الحالات</option><option value="new">جديد</option><option value="reviewing">قيد المراجعة</option><option value="solved">تم الحل</option><option value="rejected">مرفوض</option></select>
+      </div>
+      <div id="tickets"></div>
+    </section>
+
+    <section id="auditTab" class="panel glass hidden">
+      <div class="section-head"><h2>سجل الإدارة</h2><button id="refreshAudit" class="btn primary small">تحديث</button></div>
+      <div id="auditLogs"></div>
     </section>
   </main>
 
   <section id="blocked" class="auth hidden">
-    <div class="card glass"><h2>ممنوع الدخول</h2><p class="muted">هذه الصفحة للأدمن فقط.</p><button onclick="location.href='/'" class="btn primary full">رجوع</button></div>
+    <div class="card glass"><h2>ممنوع الدخول</h2><p class="muted">هذه الصفحة للأدمن أو الأونر فقط.</p><button onclick="location.href='/'" class="btn primary full">رجوع</button></div>
   </section>
+
+  <dialog id="detailsDialog"><div class="modal glass"><div id="detailsContent"></div><button onclick="document.getElementById('detailsDialog').close()" class="btn full">إغلاق</button></div></dialog>
+  <dialog id="passwordDialog"><form id="passwordForm" class="modal glass" method="dialog"><h2>تغيير كلمة المرور</h2><input id="resetUserId" type="hidden"><label>كلمة مرور جديدة<input id="newPassword" minlength="6" required></label><button class="btn primary full">حفظ</button><button type="button" onclick="document.getElementById('passwordDialog').close()" class="btn full">إلغاء</button></form></dialog>
 
   <script src="/app/admin.js"></script>
 </body>

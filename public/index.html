@@ -66,6 +66,7 @@
         <button class="nav" data-page="spaces">▦ <span>المساحات</span></button>
         <button class="nav" data-page="profile">♛ <span>البروفايل</span></button>
         <button class="nav" data-page="settings">⚙ <span>الإعدادات</span></button>
+        <button class="nav" data-page="support">✉ <span>الدعم</span></button>
       </nav>
 
       <div class="side-user">
@@ -99,6 +100,7 @@
       <section id="spacesPage" class="page"></section>
       <section id="profilePage" class="page"></section>
       <section id="settingsPage" class="page"></section>
+      <section id="supportPage" class="page"></section>
     </section>
 
     <nav class="bottom-nav glass">
@@ -129,6 +131,28 @@
 
       <button class="btn primary full">حفظ</button>
       <button id="closeTask" class="btn ghost full" type="button">إلغاء</button>
+    </form>
+  </dialog>
+
+  <dialog id="supportDialog">
+    <form id="supportForm" class="modal glass" method="dialog">
+      <h2>تذكرة دعم جديدة</h2>
+      <label>النوع
+        <select id="ticketType">
+          <option value="problem">مشكلة</option>
+          <option value="suggestion">اقتراح</option>
+          <option value="complaint">شكوى</option>
+          <option value="feature">طلب ميزة</option>
+        </select>
+      </label>
+      <label>العنوان
+        <input id="ticketTitle" required placeholder="اكتب عنوان مختصر">
+      </label>
+      <label>التفاصيل
+        <textarea id="ticketMessage" required rows="5" placeholder="اشرح المشكلة أو الاقتراح..."></textarea>
+      </label>
+      <button class="btn primary full">إرسال</button>
+      <button id="closeSupport" class="btn ghost full" type="button">إلغاء</button>
     </form>
   </dialog>
 

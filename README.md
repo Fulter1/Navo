@@ -1,56 +1,51 @@
-# Navo Render Ready
+# Navo Admin Pro — Owner + Support + Telegram Ready
 
-مشروع Navo كامل مع:
-- Node.js + Express
-- SQLite Database
-- تسجيل دخول / إنشاء حساب
-- XP و Level
-- مهام
-- جلسات تركيز
-- لوحة أدمن خاصة
+## الجديد
+- رتبة Owner محمية
+- Admin / User / Banned
+- حماية من حذف نفسك أو إزالة رتبتك
+- بحث وفلترة المستخدمين
+- تفاصيل المستخدم: مهام + جلسات تركيز + تذاكر
+- تعديل XP
+- تغيير كلمة مرور المستخدم
+- تذاكر دعم واقتراحات من داخل الموقع
+- تبويب تذاكر في لوحة الأدمن
+- سجل إداري Audit Logs
+- Telegram Bot جاهز اختياريًا
 
-## حساب الأدمن الافتراضي
+## حساب Owner
 username: Fulter
 password: Fulter@12345
 
-## تشغيل محلي
+## التشغيل المحلي
 ```bash
 npm install
 npm start
 ```
 
-افتح:
+## Render Environment
 ```txt
-http://localhost:3000
-```
-
-لوحة الأدمن:
-```txt
-http://localhost:3000/admin
-```
-
-## الرفع على Render
-1. ارفع المشروع على GitHub
-2. في Render اختر New Web Service
-3. Build Command:
-```bash
-npm install
-```
-4. Start Command:
-```bash
-npm start
-```
-5. أضف Disk:
-```txt
-Mount Path: /data
-```
-6. Environment Variables:
-```txt
+NODE_VERSION=20.18.1
+OWNER_USERNAME=Fulter
+OWNER_PASSWORD=Fulter@12345
 ADMIN_USERNAME=Fulter
 ADMIN_PASSWORD=Fulter@12345
 JWT_SECRET=اكتب_رمز_سري_طويل
-DATABASE_PATH=/data/navo.sqlite
+DATABASE_PATH=./data/navo.sqlite
 ```
 
-## مهم
-بعد أول تشغيل غير كلمة مرور الأدمن من متغيرات Render أو خليني أضيف لك صفحة تغيير كلمة المرور.
+## Telegram اختياري
+```txt
+TELEGRAM_BOT_TOKEN=توكن_البوت
+TELEGRAM_ADMIN_CHAT_ID=ايدي_حسابك
+```
+
+Webhook:
+```txt
+https://YOUR_DOMAIN/api/telegram/webhook
+```
+
+ثم تضبطه من:
+```txt
+https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://YOUR_DOMAIN/api/telegram/webhook
+```
