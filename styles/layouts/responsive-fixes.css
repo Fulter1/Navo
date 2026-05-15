@@ -1,0 +1,4 @@
+/* Final responsive guardrails */
+html,body{max-width:100%;}
+img,svg,video{max-width:100%;height:auto}
+@media(max-width:520px){.launch-nav nav{display:none}.launch-cta{min-width:auto}.workspace{padding-inline:10px}.mobile-nav{overflow-x:auto}.landing-v2{padding-inline:10px}.price-grid,.test-grid,.shot-grid,.feature-grid,.ai-launch{grid-template-columns:1fr!important}}

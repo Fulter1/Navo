@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#07090f" />
-  <title>Navo 2.1 — Intelligent Calm OS</title>
-  <!-- Navo 2.1 Ready Build — Intelligent Calm OS -->
+  <title>Navo 3.0 — Structured Calm OS</title>
+  <!-- Navo 3.0 Structured Build — Modular Calm OS -->
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="assets/navo-icon.png" />
-  <link rel="apple-touch-icon" href="assets/navo-icon.png" />
+  <link rel="icon" href="assets/icons/navo-icon.png" />
+  <link rel="apple-touch-icon" href="assets/icons/navo-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
   <div id="loader" class="loader navo-loader" aria-label="Loading Navo">
@@ -34,7 +34,7 @@
 
   <section id="landing" class="landing-v2">
     <header class="launch-nav glass">
-      <button class="launch-brand" type="button" data-scroll="landing"><img src="assets/navo-mark.svg" alt="Navo"><b>Navo</b><span>2.1</span></button>
+      <button class="launch-brand" type="button" data-scroll="landing"><img src="assets/navo-mark.svg" alt="Navo"><b>Navo</b><span>3.0</span></button>
       <nav>
         <button type="button" data-scroll="features">المميزات</button>
         <button type="button" data-scroll="ai-layer">AI Layer</button>
@@ -48,7 +48,7 @@
 
     <section class="launch-hero reveal-on-scroll">
       <div class="launch-copy">
-        <span class="eyebrow">NAVO 2.1 • INTELLIGENT CALM OS</span>
+        <span class="eyebrow">NAVO 3.0 • STRUCTURED CALM OS</span>
         <h1>رتّب عقلك.<br>وركّز بدون ضجيج.</h1>
         <p>Navo يحول مهامك، أفكارك، وجلسات تركيزك إلى نظام تشغيل شخصي هادئ يساعدك تبدأ أهم شيء بدون تشتيت.</p>
         <div class="launch-actions">
@@ -118,7 +118,7 @@
       </div>
     </section>
 
-    <footer class="launch-footer"><img src="assets/navo-mark.svg" alt=""><b>Navo 2.0</b><span>Focus without noise.</span></footer>
+    <footer class="launch-footer"><img src="assets/navo-mark.svg" alt=""><b>Navo 3.0</b><span>Focus without noise.</span></footer>
   </section>
 
   <section id="auth" class="auth-view auth-v3 hidden">
@@ -353,7 +353,7 @@
   </dialog>
 
   <div id="cmd" class="cmd hidden"><div class="cmd-box glass"><input id="cmdInput" placeholder="اكتب أمر: /focus, /task, /brain, /deep, /summary"><div id="cmdList"></div></div></div>
-  <script src="navo-config.js"></script>
-  <script src="app.js"></script>
+  <script src="config/navo-config.js"></script>
+  <script type="module" src="app/main.js"></script>
 </body>
 </html>
