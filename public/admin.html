@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navo Admin</title>
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <main id="admin" class="admin-layout hidden">
+    <header class="admin-head glass">
+      <div><span class="chip">ADMIN PANEL</span><h1>لوحة تحكم Navo</h1><p class="muted">تحكم بالمستخدمين، XP، Level، الحالة والرتب.</p></div>
+      <div><button id="homeBtn" class="btn">الموقع</button> <button id="logout" class="btn">خروج</button></div>
+    </header>
+
+    <section class="stats grid">
+      <div class="stat glass"><span class="muted">Users</span><strong id="sUsers">0</strong></div>
+      <div class="stat glass"><span class="muted">Active</span><strong id="sActive">0</strong></div>
+      <div class="stat glass"><span class="muted">Banned</span><strong id="sBanned">0</strong></div>
+      <div class="stat glass"><span class="muted">Focus</span><strong id="sFocus">0m</strong></div>
+    </section>
+
+    <section class="panel glass table">
+      <div class="section-head"><h2>المستخدمين</h2><button id="refresh" class="btn primary small">تحديث</button></div>
+      <table>
+        <thead><tr><th>ID</th><th>المستخدم</th><th>الدور</th><th>الحالة</th><th>XP</th><th>Level</th><th>Focus</th><th>إجراءات</th></tr></thead>
+        <tbody id="users"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <section id="blocked" class="auth hidden">
+    <div class="card glass"><h2>ممنوع الدخول</h2><p class="muted">هذه الصفحة للأدمن فقط.</p><button onclick="location.href='/'" class="btn primary full">رجوع</button></div>
+  </section>
+
+  <script src="/app/admin.js"></script>
+</body>
+</html>

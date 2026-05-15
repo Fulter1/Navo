@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070B14">
+  <title>Navo</title>
+  <link rel="icon" href="/assets/navo-icon.png">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <div id="overlay" class="overlay"></div>
+
+  <section id="auth" class="auth">
+    <div class="auth-shell">
+      <div class="brand glass">
+        <img src="/assets/navo-mark.svg" alt="Navo">
+        <span class="chip">Calm Intelligence OS</span>
+        <h1>رتّب يومك بهدوء.</h1>
+        <p>حسابات حقيقية، بيانات محفوظة، XP و Level، ولوحة تحكم للأدمن.</p>
+      </div>
+
+      <form id="authForm" class="card glass">
+        <img class="logo" src="/assets/navo-mark.svg" alt="Navo">
+        <p id="authChip" class="chip">WELCOME BACK</p>
+        <h2 id="authTitle">تسجيل الدخول</h2>
+        <p class="muted">ادخل باسم المستخدم وكلمة المرور.</p>
+
+        <div class="tabs">
+          <button id="loginTab" class="active" type="button">دخول</button>
+          <button id="registerTab" type="button">إنشاء حساب</button>
+        </div>
+
+        <label>اسم المستخدم
+          <input id="username" required minlength="3" autocomplete="username">
+        </label>
+
+        <label>كلمة المرور
+          <input id="password" required minlength="6" type="password" autocomplete="current-password">
+        </label>
+
+        <p id="msg" class="msg"></p>
+        <button id="submitBtn" class="btn primary full" type="submit">دخول</button>
+      </form>
+    </div>
+  </section>
+
+  <main id="app" class="layout hidden">
+    <aside id="sidebar" class="sidebar glass">
+      <div class="side-brand">
+        <img src="/assets/navo-mark.svg" alt="Navo">
+        <div>
+          <b>Navo</b>
+          <small>Full Workspace</small>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav active" data-page="home">⌘ <span>الرئيسية</span></button>
+        <button class="nav" data-page="tasks">✓ <span>المهام</span></button>
+        <button class="nav" data-page="focus">◉ <span>التركيز</span></button>
+        <button class="nav" data-page="spaces">▦ <span>المساحات</span></button>
+        <button class="nav" data-page="profile">♛ <span>البروفايل</span></button>
+        <button class="nav" data-page="settings">⚙ <span>الإعدادات</span></button>
+      </nav>
+
+      <div class="side-user">
+        <div id="avatar" class="avatar">N</div>
+        <div>
+          <b id="sideName">Navo User</b>
+          <small id="sideRole">User</small>
+        </div>
+      </div>
+
+      <button id="adminBtn" class="btn primary full hidden">لوحة الأدمن</button>
+      <button id="logout" class="btn ghost full">تسجيل خروج</button>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar glass">
+        <button id="menuBtn" class="icon mobile">☰</button>
+        <div class="title-box">
+          <small id="todayText">Navo Workspace</small>
+          <h1 id="pageTitle">الرئيسية</h1>
+        </div>
+        <div class="top-actions">
+          <button id="themeBtn" class="btn ghost small">🌙</button>
+          <button id="quickTask" class="btn primary small">+ مهمة</button>
+        </div>
+      </header>
+
+      <section id="home" class="page active"></section>
+      <section id="tasksPage" class="page"></section>
+      <section id="focusPage" class="page"></section>
+      <section id="spacesPage" class="page"></section>
+      <section id="profilePage" class="page"></section>
+      <section id="settingsPage" class="page"></section>
+    </section>
+
+    <nav class="bottom-nav glass">
+      <button class="mnav active" data-page="home">⌘<span>الرئيسية</span></button>
+      <button class="mnav" data-page="tasks">✓<span>المهام</span></button>
+      <button class="mnav" data-page="focus">◉<span>تركيز</span></button>
+      <button class="mnav" data-page="spaces">▦<span>مساحات</span></button>
+      <button class="mnav" data-page="settings">⚙<span>إعدادات</span></button>
+    </nav>
+  </main>
+
+  <dialog id="taskDialog">
+    <form id="taskForm" class="modal glass" method="dialog">
+      <h2 id="taskDialogTitle">مهمة جديدة</h2>
+      <input id="taskId" type="hidden">
+
+      <label>العنوان
+        <input id="taskTitle" required placeholder="وش بتنجز؟">
+      </label>
+
+      <label>الأولوية
+        <select id="taskPriority">
+          <option value="high">عالية</option>
+          <option value="medium" selected>متوسطة</option>
+          <option value="low">خفيفة</option>
+        </select>
+      </label>
+
+      <button class="btn primary full">حفظ</button>
+      <button id="closeTask" class="btn ghost full" type="button">إلغاء</button>
+    </form>
+  </dialog>
+
+  <script src="/app/main.js"></script>
+</body>
+</html>

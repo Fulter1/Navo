@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: navo
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: Fulter
+      - key: ADMIN_PASSWORD
+        value: Fulter@12345
+      - key: DATABASE_PATH
+        value: /data/navo.sqlite
+    disk:
+      name: navo-data
+      mountPath: /data
+      sizeGB: 1
