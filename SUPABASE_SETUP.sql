@@ -1,21 +1,28 @@
-Navo Luxury Fixed
-=================
+-- Navo Cloud table
+create table if not exists public.navo_states (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text unique,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
 
-المشاكل التي تم إصلاحها:
-- كانت الملفات المرفوعة متبدلة: index.html كان صورة، app.js كان HTML، navo-config.js كان CSS، و SQL كان JS. تم ترتيبها بأسماء صحيحة.
-- إعادة بناء واجهة تسجيل الدخول: تسجيل دخول + إنشاء حساب بدون بريد ظاهر للمستخدم.
-- إذا اليوزر موجود أثناء إنشاء الحساب تظهر رسالة واضحة.
-- الداشبورد صار أنظف: بطاقات، تقدم اليوم، أهم مهمة، XP، جلسات التركيز.
-- الإعدادات صارت مرتبة: الملف الشخصي، وقت التركيز، المظهر، الحساب والأمان.
-- القائمة الجانبية صارت ثابتة وفخمة على الديسكتوب، وقائمة سفلية للجوال.
-- تحسينات للجوال ومنع الفراغ الأسود/الأبيض يمين الصفحة.
-- إصلاح Service Worker و Manifest.
+alter table public.navo_states enable row level security;
 
-طريقة التشغيل:
-1) افتح المجلد في VS Code.
-2) شغل Live Server على index.html.
-3) أنشئ حساب جديد باسم مستخدم وكلمة مرور.
-4) جرّب تسجيل الخروج والدخول مرة ثانية.
+drop policy if exists "Users can read own Navo state" on public.navo_states;
+create policy "Users can read own Navo state"
+on public.navo_states for select
+to authenticated
+using (auth.uid() = user_id);
 
-ملاحظة:
-النسخة تعمل محليًا بدون Supabase. ملف SUPABASE_SETUP.sql اختياري للتطوير القادم إذا تبغى مزامنة سحابية كاملة.
+drop policy if exists "Users can insert own Navo state" on public.navo_states;
+create policy "Users can insert own Navo state"
+on public.navo_states for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own Navo state" on public.navo_states;
+create policy "Users can update own Navo state"
+on public.navo_states for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
