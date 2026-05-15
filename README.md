@@ -49,3 +49,15 @@ https://YOUR_DOMAIN/api/telegram/webhook
 ```txt
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://YOUR_DOMAIN/api/telegram/webhook
 ```
+
+
+## User Experience Pro
+- داشبورد أكثر حيوية
+- تحدي يومي
+- بطاقات تفاعل سريعة
+- Focus fullscreen
+- مؤثرات وإنجاز Confetti
+- إشعارات عائمة
+- أصوات للتنبيهات والإنجاز
+- إعدادات للصوت والتنبيهات والمؤثرات
+- مساحات أجمل
