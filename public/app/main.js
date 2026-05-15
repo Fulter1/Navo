@@ -18,6 +18,8 @@ let focusSessionsTarget = Number(localStorage.getItem("navo_focus_sessions") || 
 let focusSessionDone = Number(localStorage.getItem("navo_focus_done") || 0);
 let focusStudyFullscreen = false;
 let focusSettingsOpen = localStorage.getItem("navo_focus_settings_open") !== "false";
+let navoAudioCtx = null;
+let focusTickFlip = false;
 let cleanFocusFullscreen = false;
 
 const localSpacesKey = "navo_local_spaces";
@@ -292,24 +294,24 @@ function renderFocus(){
   const focusMinutesValue = Math.round(focusTotal / 60);
 
   $("#focusPage").innerHTML = `
-    <div class="focus-pro">
-      <section class="focus-stage glass ${focusRunning ? "running" : ""} ${isBreak ? "break-mode" : ""} ${focusStudyFullscreen ? "focus-fullscreen" : ""} ${isLastMinute ? "last-minute" : ""}">
+    <div class="focus-pro ${focusSettingsOpen ? "" : "settings-closed"}">
+      <section id="focusStage" class="focus-stage glass ${focusRunning ? "running" : ""} ${isBreak ? "break-mode" : ""} ${focusStudyFullscreen ? "focus-fullscreen" : ""} ${isLastMinute ? "last-minute" : ""}">
         ${focusStudyFullscreen ? `<button class="btn ghost focus-exit-full" data-action="fullStudyFocus">تصغير</button>` : ""}
         <div class="focus-center">
-          <span class="chip focus-state-chip">${stateText} MODE</span>
+          <span id="focusStateChip" class="chip focus-state-chip">${stateText} MODE</span>
           <h2 class="focus-title">${stageTitle}</h2>
           <p class="focus-sub">${stageSub}</p>
 
-          <div class="focus-ring-pro" style="--progress:${progress}">
+          <div id="focusRing" class="focus-ring-pro" style="--progress:${progress}">
             <div class="focus-time">
               <b id="timerText">${format(focusLeft)}</b>
-              <span>${isBreak ? "استراحة" : "مذاكرة"} · ${progress}%</span>
-              <div class="focus-progress-text">${format(passed)} / ${format(totalSeconds)}</div>
+              <span id="focusProgressLabel">${isBreak ? "استراحة" : "مذاكرة"} · ${progress}%</span>
+              <div id="focusProgressText" class="focus-progress-text">${format(passed)} / ${format(totalSeconds)}</div>
             </div>
           </div>
 
-          <div class="focus-mini-bar" style="--progress-width:${progress}%"><i></i></div>
-          ${focusStudyFullscreen ? `<div class="fullscreen-minimal-note">Esc للخروج من الشاشة الكاملة · خلك على هدف الجلسة فقط</div>` : ""}
+          <div id="focusMiniBar" class="focus-mini-bar" style="--progress-width:${progress}%"><i></i></div>
+          <div class="focus-muted-line">${focusStudyFullscreen ? "وضع الشاشة الكاملة — Esc للخروج" : "اضغط تكبير الشاشة لتجربة مذاكرة أبسط"}</div>
 
           <div class="focus-buttons">
             <button class="btn primary" data-action="toggleFocus">${focusRunning ? "إيقاف مؤقت" : "ابدأ"}</button>
@@ -378,7 +380,7 @@ function renderFocus(){
           </div>
         </div>
 
-        <div class="focus-auto-badge">✓ البريك يبدأ تلقائيًا بعد المذاكرة</div>
+        <div class="focus-auto-badge">✓ نغمة عند النهاية + البريك يبدأ تلقائيًا</div>
 
         <div class="focus-stat-row">
           <div class="focus-stat-mini">
@@ -428,6 +430,7 @@ function renderFocus(){
 
   document.body.classList.toggle("full-focus-active", focusStudyFullscreen);
   bindActions($("#focusPage"));
+  updateFocusVisuals();
 }
 
 function renderSpaces(){
@@ -668,6 +671,8 @@ function setColor(c1,c2){
 }
 
 function toggleFocus(){
+  ensureFocusAudio();
+
   if(focusRunning){
     clearInterval(timer);
     timer = null;
@@ -681,10 +686,11 @@ function toggleFocus(){
   focusRunning = true;
   if(typeof cleanNotify === "function") cleanNotify(focusModeType === "break" ? "بدأ البريك" : "بدأت المذاكرة", focusModeType === "break" ? "خذ نفس بدون مشتتات." : "ركز على مهمة وحدة فقط.", "focus");
 
+  renderFocus();
+
   timer = setInterval(async () => {
-    focusLeft--;
-    const text = $("#timerText");
-    if(text) text.textContent = format(focusLeft);
+    focusLeft = Math.max(0, focusLeft - 1);
+    updateFocusVisuals();
 
     if(focusLeft <= 0){
       if(focusModeType === "focus"){
@@ -694,8 +700,6 @@ function toggleFocus(){
       }
     }
   }, 1000);
-
-  renderFocus();
 }
 
 function resetFocus(){
@@ -723,7 +727,14 @@ async function completeFocus(){
     focusSessionDone += 1;
     localStorage.setItem("navo_focus_done", String(focusSessionDone));
 
-    if(typeof cleanTone === "function") cleanTone("success");
+    playFocusChime("done");
+
+    const stage = $("#focusStage");
+    if(stage){
+      stage.classList.add("finished-flash");
+      setTimeout(() => stage.classList.remove("finished-flash"), 1500);
+    }
+
     if(typeof cleanCelebrate === "function") cleanCelebrate();
     if(typeof cleanNotify === "function") cleanNotify("انتهت المذاكرة", "ممتاز! بدأ البريك تلقائيًا.", "success");
     else toast("انتهت المذاكرة، بدأ البريك");
@@ -733,6 +744,9 @@ async function completeFocus(){
       focusLeft = focusTotal;
       focusStudyFullscreen = false;
       document.body.classList.remove("full-focus-active");
+      if(document.fullscreenElement){
+        try{ await document.exitFullscreen(); }catch{}
+      }
       if(typeof cleanNotify === "function") cleanNotify("أنهيت هدف اليوم", "خلصت عدد الجلسات المحدد. فخورين فيك!", "success");
       renderAll();
       setPage("focus");
@@ -745,16 +759,16 @@ async function completeFocus(){
     renderAll();
     setPage("focus");
 
-    timer = setInterval(async () => {
-      focusLeft--;
-      const text = $("#timerText");
-      if(text) text.textContent = format(focusLeft);
+    timer = setInterval(() => {
+      focusLeft = Math.max(0, focusLeft - 1);
+      updateFocusVisuals();
+
       if(focusLeft <= 0){
         completeBreak();
       }
     }, 1000);
 
-    renderFocus();
+    updateFocusVisuals();
   }catch{
     if(typeof cleanNotify === "function") cleanNotify("خطأ", "صار خطأ في حفظ الجلسة.", "warning");
     else toast("صار خطأ في حفظ التركيز");
@@ -762,6 +776,76 @@ async function completeFocus(){
 }
 
 
+
+
+function getFocusTotalSeconds(){
+  return focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+}
+
+function updateFocusVisuals(){
+  const totalSeconds = getFocusTotalSeconds();
+  const passed = Math.max(0, totalSeconds - focusLeft);
+  const progress = totalSeconds > 0 ? Math.min(100, Math.round((passed / totalSeconds) * 100)) : 0;
+  const isBreak = focusModeType === "break";
+
+  const timerText = $("#timerText");
+  if(timerText) timerText.textContent = format(focusLeft);
+
+  const ring = $("#focusRing");
+  if(ring) ring.style.setProperty("--progress", progress);
+
+  const bar = $("#focusMiniBar");
+  if(bar) bar.style.setProperty("--progress-width", progress + "%");
+
+  const label = $("#focusProgressLabel");
+  if(label) label.textContent = `${isBreak ? "استراحة" : "مذاكرة"} · ${progress}%`;
+
+  const progressText = $("#focusProgressText");
+  if(progressText) progressText.textContent = `${format(passed)} / ${format(totalSeconds)}`;
+
+  const stage = $("#focusStage");
+  if(stage){
+    stage.classList.toggle("last-minute", focusLeft <= 60 && focusRunning);
+    focusTickFlip = !focusTickFlip;
+    stage.classList.toggle("tick", focusTickFlip);
+    window.setTimeout(() => stage.classList.remove("tick"), 130);
+  }
+}
+
+function ensureFocusAudio(){
+  try{
+    if(!navoAudioCtx) navoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(navoAudioCtx.state === "suspended") navoAudioCtx.resume();
+  }catch{}
+}
+
+function playFocusChime(type="done"){
+  try{
+    ensureFocusAudio();
+    if(!navoAudioCtx) return;
+
+    const now = navoAudioCtx.currentTime;
+    const notes = type === "break"
+      ? [523.25, 659.25, 783.99]
+      : [659.25, 880, 1046.5];
+
+    notes.forEach((freq, idx) => {
+      const osc = navoAudioCtx.createOscillator();
+      const gain = navoAudioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + idx * 0.13);
+      gain.gain.setValueAtTime(0.0001, now + idx * 0.13);
+      gain.gain.exponentialRampToValueAtTime(0.09, now + idx * 0.13 + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.13 + 0.32);
+      osc.connect(gain);
+      gain.connect(navoAudioCtx.destination);
+      osc.start(now + idx * 0.13);
+      osc.stop(now + idx * 0.13 + 0.35);
+    });
+
+    if(navigator.vibrate) navigator.vibrate(type === "break" ? [120, 60, 120] : [180, 80, 180]);
+  }catch{}
+}
 
 function updateCustomFocusTimes(quiet=false){
   const focusInput = $("#focusMinutesInput");
@@ -806,9 +890,12 @@ function completeBreak(){
   focusRunning = false;
   focusModeType = "focus";
   focusLeft = focusTotal;
-  if(typeof cleanTone === "function") cleanTone("focus");
+
+  playFocusChime("break");
+
   if(typeof cleanNotify === "function") cleanNotify("انتهى البريك", "ارجع لجلسة المذاكرة التالية.", "focus");
   else toast("انتهى البريك");
+
   renderFocus();
 }
 
@@ -826,9 +913,12 @@ async function toggleStudyFullscreen(){
 
   try{
     if(focusStudyFullscreen && !document.fullscreenElement){
-      await document.documentElement.requestFullscreen();
+      const target = document.documentElement;
+      if(target.requestFullscreen) await target.requestFullscreen();
+      else if(target.webkitRequestFullscreen) await target.webkitRequestFullscreen();
     }else if(!focusStudyFullscreen && document.fullscreenElement){
-      await document.exitFullscreen();
+      if(document.exitFullscreen) await document.exitFullscreen();
+      else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
     }
   }catch{}
 
@@ -965,6 +1055,15 @@ function toggleFocusSettings(){
 
 document.addEventListener("fullscreenchange", () => {
   if(!document.fullscreenElement && focusStudyFullscreen){
+    focusStudyFullscreen = false;
+    document.body.classList.remove("full-focus-active");
+    if(page === "focus") renderFocus();
+  }
+});
+
+
+document.addEventListener("webkitfullscreenchange", () => {
+  if(!document.webkitFullscreenElement && focusStudyFullscreen){
     focusStudyFullscreen = false;
     document.body.classList.remove("full-focus-active");
     if(page === "focus") renderFocus();
