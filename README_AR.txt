@@ -1,29 +1,35 @@
-نسخة Navo Ultimate Ready
+# Navo 2.0 — Launch Version
 
-الملفات الصحيحة:
-- index.html: الصفحة الرئيسية
-- style.css: تصميم مرتب + تحسينات فخمة
-- app.js: وظائف الموقع + التحسينات الجديدة
+هذه نسخة الإطلاق الجديدة من Navo كـ Calm Productivity Operating System.
+
+## الملفات
+- index.html: Landing Page + Auth + App
+- style.css: الهوية الجديدة + Motion System + Responsive + Landing
+- app.js: وظائف التطبيق + AI UX + Onboarding + Auth Polish
 - navo-config.js: إعدادات Supabase
-- SUPABASE_SETUP.sql: شغله مرة واحدة داخل Supabase SQL Editor
+- SUPABASE_SETUP.sql: قاعدة البيانات في Supabase
 - manifest.webmanifest + sw.js: دعم PWA
 - assets/: الشعار والأيقونة
 
-وش أضفت لك:
-1) Dashboard أفضل وفيه Quick Actions وساعات منتجة.
-2) قائمة جانبية قابلة للتصغير على الكمبيوتر.
-3) إعدادات ألوان الهوية، اللغة، رفع صورة البروفايل.
-4) Export / Import للبيانات.
-5) Focus Room بوضع Cinema وتأثيرات أنعم.
-6) تحسينات تسجيل الدخول: loading state + shake عند الخطأ.
-7) تحسين الجوال والـ safe area.
-8) تحسينات micro interactions.
+## أهم الإضافات
+1) Landing Page احترافية كاملة: Hero, Features, AI Layer, Screenshots, Pricing, Testimonials, Footer.
+2) هوية Navo 2.0 الجديدة: Calm Productivity OS + Focus without noise.
+3) Motion System: Scroll reveals, tilt mockup, smoother command palette, hover depth.
+4) Auth UX: Remember me, password strength, forgot password UI, social login placeholders, loading skeleton.
+5) Onboarding: اختيار أسلوب المستخدم أول مرة.
+6) AI Brain Dump: تصنيف الأفكار إلى مهام مع أولوية ومساحة مناسبة.
+7) Focus Room 2.0: Deep Mode + cinematic polish.
+8) Empty States احترافية بدل الفراغ العادي.
+9) Command Palette أقوى بأوامر /focus /task /brain /theme.
+10) Mobile polish وتحسينات إطلاق.
 
-طريقة التشغيل:
-- افتح المجلد في VS Code.
-- شغل Live Server على index.html.
-- عدل navo-config.js وحط بيانات Supabase لو تبي cloud sync.
-- شغل SUPABASE_SETUP.sql في Supabase إذا ما شغلته قبل.
+## التشغيل
+افتح المجلد في VS Code ثم شغل Live Server على index.html.
 
-ملاحظة:
-لو فتحت الملف مباشرة بدون Live Server ممكن service worker أو بعض الميزات ما تشتغل صح.
+## Supabase
+لو تبي Cloud Sync:
+1) عدل navo-config.js وحط بيانات مشروع Supabase.
+2) شغل SUPABASE_SETUP.sql داخل Supabase SQL Editor مرة واحدة.
+
+## ملاحظة
+لا تفتح index.html مباشرة من الملف؛ استخدم Live Server عشان PWA و Service Worker يشتغلون صح.

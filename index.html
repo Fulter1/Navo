@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#07090f" />
-  <title>Navo</title>
-  <!-- Navo Username Cloud + Mobile Perfect Update -->
+  <title>Navo 2.0 — Calm Productivity OS</title>
+  <!-- Navo 2.0 Launch Build — Calm Productivity OS -->
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/navo-icon.png" />
   <link rel="apple-touch-icon" href="assets/navo-icon.png" />
@@ -31,7 +31,97 @@
   <div class="ambient ambient-b"></div>
   <div id="toast" class="toast"></div>
 
-  <section id="auth" class="auth-view auth-v3">
+
+  <section id="landing" class="landing-v2">
+    <header class="launch-nav glass">
+      <button class="launch-brand" type="button" data-scroll="landing"><img src="assets/navo-mark.svg" alt="Navo"><b>Navo</b><span>2.0</span></button>
+      <nav>
+        <button type="button" data-scroll="features">المميزات</button>
+        <button type="button" data-scroll="ai-layer">AI Layer</button>
+        <button type="button" data-scroll="pricing">الأسعار</button>
+        <button type="button" data-open-auth>دخول</button>
+      </nav>
+      <button class="primary launch-cta" type="button" data-open-auth>ابدأ مجانًا</button>
+    </header>
+
+    <div class="launch-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <section class="launch-hero reveal-on-scroll">
+      <div class="launch-copy">
+        <span class="eyebrow">NAVO 2.0 • CALM PRODUCTIVITY OS</span>
+        <h1>رتّب عقلك.<br>وركّز بدون ضجيج.</h1>
+        <p>Navo يحول مهامك، أفكارك، وجلسات تركيزك إلى نظام تشغيل شخصي هادئ يساعدك تبدأ أهم شيء بدون تشتيت.</p>
+        <div class="launch-actions">
+          <button class="primary big" type="button" data-open-auth>Start Free</button>
+          <button class="ghost big" type="button" data-scroll="demo">Watch Demo</button>
+        </div>
+        <div class="launch-proof"><span>Focus Room</span><span>Brain Dump AI</span><span>PWA Ready</span></div>
+      </div>
+      <div id="demo" class="launch-mockup glass tilt-card" data-tilt>
+        <div class="mock-top"><span></span><span></span><span></span><b>Mission Control</b></div>
+        <div class="mock-grid">
+          <article class="mock-card hero"><small>Current Signal</small><strong>ابدأ بالمهمة الأهم الآن</strong><em>Smart Cue • 25m Focus</em></article>
+          <article class="mock-card"><small>Today</small><strong>76%</strong><i></i></article>
+          <article class="mock-card"><small>AI Plan</small><p>رتبت لك 4 مهام حسب الأولوية والطاقة.</p></article>
+          <article class="mock-card focus"><small>Focus Room</small><strong>25:00</strong><em>Deep Mode</em></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="launch-section reveal-on-scroll">
+      <div class="section-title"><span class="eyebrow">WHY NAVO</span><h2>مو تطبيق مهام عادي.</h2><p>تجربة كاملة للتركيز، التخطيط، وتصفية الأفكار.</p></div>
+      <div class="feature-grid">
+        <article class="feature-card glass"><b>01</b><h3>Mission Control</h3><p>داشبورد يعطيك أهم مهمة، تقدم اليوم، والمهام القادمة بدون زحمة.</p></article>
+        <article class="feature-card glass"><b>02</b><h3>Cinematic Focus</h3><p>Focus Room بتأثيرات هادئة، مؤقت، أصوات، ووضع سينمائي كامل.</p></article>
+        <article class="feature-card glass"><b>03</b><h3>Smart Spaces</h3><p>قسّم حياتك لمساحات: جامعة، برمجة، شخصي، أو مشاريعك الخاصة.</p></article>
+        <article class="feature-card glass"><b>04</b><h3>Offline First</h3><p>يشتغل محليًا بسرعة، ومع PWA تقدر تستخدمه كأنه تطبيق.</p></article>
+      </div>
+    </section>
+
+    <section id="ai-layer" class="launch-section ai-launch reveal-on-scroll">
+      <article class="glass ai-panel">
+        <span class="eyebrow">AI LAYER</span>
+        <h2>Brain Dump يتحول لخطة.</h2>
+        <p>اكتب أفكارك بشكل عشوائي، وNavo يرتبها كمهام، أولويات، وخطوة أولى واضحة.</p>
+        <div class="ai-flow"><span>Idea</span><i></i><span>Priority</span><i></i><span>Focus</span><i></i><span>Done</span></div>
+      </article>
+      <div class="ai-cards">
+        <div class="glass ai-mini"><h3>Smart Planning</h3><p>اقتراح ترتيب اليوم حسب الأولوية.</p></div>
+        <div class="glass ai-mini"><h3>Daily Summary</h3><p>ملخص إنجازاتك وجلسات التركيز.</p></div>
+        <div class="glass ai-mini"><h3>Focus Insights</h3><p>يعرف متى يكون تركيزك أفضل.</p></div>
+      </div>
+    </section>
+
+    <section class="launch-section screenshots reveal-on-scroll">
+      <div class="section-title"><span class="eyebrow">PRODUCT PREVIEW</span><h2>مصمم كمنتج عالمي.</h2></div>
+      <div class="shot-grid">
+        <div class="shot glass"><b>Dashboard</b><span>AI Signal + Quick Actions</span></div>
+        <div class="shot glass"><b>Focus Room</b><span>Cinematic Deep Work</span></div>
+        <div class="shot glass"><b>Brain</b><span>Ideas → Tasks</span></div>
+      </div>
+    </section>
+
+    <section id="pricing" class="launch-section pricing reveal-on-scroll">
+      <div class="section-title"><span class="eyebrow">PRICING</span><h2>ابدأ مجانيًا.</h2></div>
+      <div class="price-grid">
+        <article class="glass price-card"><h3>Free</h3><strong>0 ريال</strong><p>مهام، Focus Room، Brain Dump، PWA.</p><button class="primary full" type="button" data-open-auth>ابدأ الآن</button></article>
+        <article class="glass price-card pro"><h3>Pro</h3><strong>قريبًا</strong><p>AI أقوى، مزامنة أعمق، تحليلات متقدمة.</p><button class="ghost full" type="button">Coming Soon</button></article>
+      </div>
+    </section>
+
+    <section class="launch-section testimonials reveal-on-scroll">
+      <div class="section-title"><span class="eyebrow">EARLY LOVE</span><h2>مصمم للناس اللي تبغى هدوء وإنجاز.</h2></div>
+      <div class="test-grid">
+        <blockquote class="glass">“أول تطبيق حسسني أن المهام صارت أهدأ.”<span>طالب جامعة</span></blockquote>
+        <blockquote class="glass">“Focus Room لحاله يستاهل.”<span>مطور</span></blockquote>
+        <blockquote class="glass">“Brain Dump رتب يومي بسرعة.”<span>Creator</span></blockquote>
+      </div>
+    </section>
+
+    <footer class="launch-footer"><img src="assets/navo-mark.svg" alt=""><b>Navo 2.0</b><span>Focus without noise.</span></footer>
+  </section>
+
+  <section id="auth" class="auth-view auth-v3 hidden">
     <div class="auth-shell auth-shell-v3">
       <aside class="auth-brand-panel">
         <div class="brand-mark auth-brand"><img src="assets/navo-mark.svg" alt="Navo"><span>Navo</span></div>
@@ -227,6 +317,21 @@
   </main>
 
   <dialog id="taskDialog"><form id="taskForm" method="dialog" class="modal glass"><button class="close" type="button" id="closeTask">×</button><h2>مهمة جديدة</h2><label>العنوان<input id="taskTitle" required placeholder="وش بتنجز؟"></label><div class="two"><label>Space<select id="taskSpace"></select></label><label>الأولوية<select id="taskPriority"><option>High</option><option selected>Medium</option><option>Low</option></select></label></div><label>التاريخ<input id="taskDate" type="date"></label><button class="primary full">إضافة</button></form></dialog>
+
+  <dialog id="onboardingDialog" class="onboarding-dialog">
+    <form method="dialog" class="modal glass onboarding-card">
+      <span class="eyebrow">WELCOME TO NAVO 2.0</span>
+      <h2>خلنا نضبط تجربتك</h2>
+      <p class="muted-line">اختار أسلوبك عشان Navo يقترح لك بداية أنسب.</p>
+      <div class="onboarding-options">
+        <button type="button" data-persona="calm">هدوء وترتيب</button>
+        <button type="button" data-persona="deep">تركيز عميق</button>
+        <button type="button" data-persona="student">طالب جامعة</button>
+      </div>
+      <button id="finishOnboarding" class="primary full" type="button">ابدأ تجربتي</button>
+    </form>
+  </dialog>
+
   <div id="cmd" class="cmd hidden"><div class="cmd-box glass"><input id="cmdInput" placeholder="اكتب أمر: focus, task, brain, insights"><div id="cmdList"></div></div></div>
   <script src="navo-config.js"></script>
   <script src="app.js"></script>

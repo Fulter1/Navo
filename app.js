@@ -551,3 +551,168 @@ function cmdResults(q){const items=[['focus','افتح Focus Room',()=>page('foc
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootUltimate);else bootUltimate();
 })();
+
+/* =========================================================
+   NAVO 2.0 LAUNCH RUNTIME — productized layer
+   ========================================================= */
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const safe=fn=>{try{return fn()}catch(e){console.warn('[Navo 2.0]',e)}};
+  const firstLaunchKey='navo_2_onboarded';
+
+  function showLanding(){
+    $('#landing')?.classList.remove('hidden');
+    $('#auth')?.classList.add('hidden');
+    $('#app')?.classList.add('hidden');
+  }
+  function showAuth(){
+    $('#landing')?.classList.add('hidden');
+    $('#auth')?.classList.remove('hidden');
+    $('#app')?.classList.add('hidden');
+    setTimeout(()=>$('#userName')?.focus(),120);
+  }
+  function hideMarketingWhenApp(){
+    if(!$('#app')?.classList.contains('hidden')) $('#landing')?.classList.add('hidden');
+  }
+
+  function bootLanding(){
+    $$('[data-open-auth]').forEach(btn=>btn.addEventListener('click',showAuth));
+    $$('[data-scroll]').forEach(btn=>btn.addEventListener('click',()=>document.getElementById(btn.dataset.scroll)?.scrollIntoView({behavior:'smooth'})));
+    if(!localStorage.getItem('navox_current')) showLanding();
+
+    const io=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle('visible',e.isIntersecting)),{threshold:.16});
+    $$('.reveal-on-scroll').forEach(el=>io.observe(el));
+
+    $$('[data-tilt]').forEach(card=>{
+      card.addEventListener('pointermove',e=>{
+        const r=card.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+        card.style.transform=`rotateY(${x*7}deg) rotateX(${-y*7}deg) translateY(-2px)`;
+        card.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+        card.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+      });
+      card.addEventListener('pointerleave',()=>card.style.transform='');
+    });
+  }
+
+  function enhanceAuth(){
+    const pass=$('#userPass'), submit=$('#authSubmitBtn'), form=$('#authForm');
+    if(!form || form.dataset.v2Auth) return; form.dataset.v2Auth='1';
+    const strength=document.createElement('div'); strength.className='strength'; strength.innerHTML='<i></i>';
+    pass?.closest('label')?.after(strength);
+    const row=document.createElement('div'); row.className='auth-extra-row';
+    row.innerHTML='<label><input id="rememberMe" type="checkbox" checked> تذكرني</label><button class="forgot-btn" id="forgotPass" type="button">نسيت كلمة المرور؟</button>';
+    strength.after(row);
+    const social=document.createElement('div'); social.className='social-auth';
+    social.innerHTML='<button type="button" data-social="Google">Google</button><button type="button" data-social="Apple">Apple</button>';
+    $('#demoBtn')?.after(social);
+
+    pass?.addEventListener('input',()=>{
+      const v=pass.value; let score=0;
+      if(v.length>=6)score+=25; if(v.length>=10)score+=25; if(/[A-Z]/.test(v)&&/[a-z]/.test(v))score+=20; if(/\d/.test(v))score+=15; if(/[^A-Za-z0-9]/.test(v))score+=15;
+      strength.querySelector('i').style.width=Math.min(100,score)+'%';
+    });
+    $('#forgotPass')?.addEventListener('click',()=>toast('استعادة كلمة المرور تحتاج تفعيل Supabase Email لاحقًا'));
+    $$('[data-social]').forEach(b=>b.addEventListener('click',()=>toast(`${b.dataset.social} login جاهز بالواجهة — فعّله من Supabase OAuth`)));
+
+    form.addEventListener('submit',()=>{
+      submit?.classList.add('loading');
+      $('#auth')?.classList.add('skeleton');
+      setTimeout(()=>{submit?.classList.remove('loading'); $('#auth')?.classList.remove('skeleton');},900);
+    },true);
+  }
+
+  function enhanceOnboarding(){
+    const dialog=$('#onboardingDialog'); if(!dialog) return;
+    $$('.onboarding-options button').forEach(b=>b.addEventListener('click',()=>{
+      $$('.onboarding-options button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      localStorage.setItem('navo_persona',b.dataset.persona);
+    }));
+    $('#finishOnboarding')?.addEventListener('click',()=>{
+      localStorage.setItem(firstLaunchKey,'1');
+      dialog.close();
+      toast('تم تجهيز Navo حسب أسلوبك');
+    });
+  }
+
+  function aiPriority(text,idx){
+    const s=text.toLowerCase();
+    if(/اختبار|واجب|تسليم|deadline|urgent|مهم|ضروري|مشروع/.test(s)) return 'High';
+    if(/راجع|تعلم|رتب|نظف|عدل|برمج|صمم/.test(s)) return idx<2?'High':'Medium';
+    return idx===0?'Medium':'Low';
+  }
+  function aiSpace(text){
+    const s=text.toLowerCase();
+    if(/جامعة|واجب|اختبار|محاضرة|c\+\+|فيزياء|دراسة/.test(s)) return 'University';
+    if(/كود|برمج|موقع|js|css|html|fivem|سكربت/.test(s)) return /fivem/.test(s)?'FiveM':'Coding';
+    return 'Personal';
+  }
+  function patchBrainDump(){
+    const btn=$('#parseDump'); if(!btn || btn.dataset.v2Brain) return; btn.dataset.v2Brain='1';
+    btn.addEventListener('click',e=>{
+      e.stopImmediatePropagation();
+      const text=$('#dumpInput').value.trim(); if(!text)return toast('اكتب أفكارك أول');
+      const parts=text.split(/\n|،|,| و | - |\. /).map(x=>x.trim()).filter(x=>x.length>2).slice(0,10);
+      $('#dumpResult').innerHTML=parts.map((p,i)=>{
+        const pr=aiPriority(p,i), sp=aiSpace(p);
+        return `<div class="task"><div><h4>${esc(p)}</h4><div class="meta"><span class="tag ai-tag">AI ${pr}</span><span class="tag">${sp}</span><span class="tag">${i===0?'ابدأ هنا':'بعدها'}</span></div></div><button class="primary addParsed" data-title="${esc(p)}" data-space="${sp}" data-priority="${pr}">إضافة</button></div>`;
+      }).join('')||empty('ما قدرت أستخرج مهام واضحة');
+      $$('.addParsed').forEach(b=>b.onclick=()=>{addTask(b.dataset.title,b.dataset.space,b.dataset.priority,today()); b.textContent='تم'; b.disabled=true});
+      toast('AI Brain رتب أفكارك');
+    },true);
+  }
+
+  function patchEmptyStates(){
+    if(typeof empty==='function' && !empty.__v2){
+      const old=empty;
+      empty=function(t){return `<div class="empty-state"><b>${t}</b><span>مساحتك جاهزة لبداية هادئة.</span></div>`};
+      empty.__v2=true;
+    }
+  }
+
+  function patchCommandPalette(){
+    if(typeof cmdResults==='function' && !cmdResults.__v2){
+      cmdResults=function(q){
+        const items=[
+          ['/focus','افتح Focus Room',()=>page('focus')],['/task','أضف مهمة جديدة',()=>$('#taskDialog').showModal()],['/brain','افتح Brain Dump',()=>page('dump')],['/today','خطة اليوم',()=>page('today')],['/insights','التحليلات',()=>page('insights')],['/settings','الإعدادات',()=>page('settings')],['/theme','بدّل الوضع',()=>applyTheme(true)],['/clear','تفريغ البحث',()=>{$('#cmdInput').value='';cmdResults('')}]
+        ];
+        const clean=(q||'').toLowerCase();
+        const list=items.filter(i=>i[0].includes(clean)||i[1].includes(q));
+        $('#cmdList').innerHTML=list.map((i,idx)=>`<div class="cmd-item" data-idx="${idx}"><b>${i[0]}</b> — ${i[1]}</div>`).join('')||'<div class="empty-state"><b>ما لقيت أمر</b><span>جرب /focus أو /task</span></div>';
+        $$('.cmd-item').forEach(el=>el.onclick=()=>{const action=list[el.dataset.idx][2]; $('#cmd').classList.add('hidden'); action();});
+      };
+      cmdResults.__v2=true;
+    }
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#cmd')?.classList.add('hidden')});
+  }
+
+  function patchFocus(){
+    const room=$('#focusRoom'); if(!room || room.dataset.v2Focus) return; room.dataset.v2Focus='1';
+    const deep=document.createElement('button'); deep.className='ghost'; deep.id='deepModeBtn'; deep.type='button'; deep.textContent='Deep Mode';
+    $('.focus-controls')?.appendChild(deep);
+    deep.onclick=()=>{room.classList.toggle('deep-mode'); toast(room.classList.contains('deep-mode')?'تم تفعيل Deep Mode':'تم إيقاف Deep Mode')};
+  }
+
+  function addLaunchBadge(){
+    if($('.app-launch-badge'))return;
+    const b=document.createElement('div'); b.className='app-launch-badge'; b.textContent='Navo 2.0 • Focus without noise'; document.body.appendChild(b);
+  }
+
+  function patchShowAppOnboarding(){
+    if(typeof showApp==='function' && !showApp.__v2){
+      const old=showApp;
+      showApp=function(){
+        old(); hideMarketingWhenApp(); addLaunchBadge();
+        setTimeout(()=>{ if(!localStorage.getItem(firstLaunchKey)) $('#onboardingDialog')?.showModal(); },650);
+      };
+      showApp.__v2=true;
+    }
+  }
+
+  function boot(){
+    safe(bootLanding); safe(enhanceAuth); safe(enhanceOnboarding); safe(patchEmptyStates); safe(patchBrainDump); safe(patchCommandPalette); safe(patchFocus); safe(patchShowAppOnboarding);
+    setInterval(hideMarketingWhenApp,500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
