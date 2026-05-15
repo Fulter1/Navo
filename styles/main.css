@@ -29,3 +29,76 @@ input,textarea,select{width:100%;min-height:50px;border:1px solid var(--border);
 @media(min-width:1101px){#mobileMenu{display:none!important}.topbar{grid-template-columns:1fr auto}.top-title{margin-inline-start:4px}}
 @media(max-width:1100px){.mobile-only{display:grid!important}.dash-hero{grid-template-columns:1fr}.dash-orb{width:190px;height:190px}.metric-grid{grid-template-columns:repeat(2,1fr)}.dashboard-grid,.premium-focus-shell,.premium-settings{grid-template-columns:1fr}.wide-setting{grid-column:auto}.settings-hero{align-items:flex-start;flex-direction:column}.toast{right:12px;left:12px;bottom:82px;max-width:none;min-width:0}.premium-focus-shell .focus-room{min-height:600px}.mobile-nav{backdrop-filter:blur(18px)}}
 @media(max-width:720px){.topbar{grid-template-columns:44px 1fr}.dash-hero{padding:22px;min-height:300px}.dash-copy h2{font-size:36px}.dash-orb{width:160px;height:160px}.dash-orb span{font-size:40px}.metric-grid{grid-template-columns:1fr 1fr;gap:10px}.metric-card{padding:16px;min-height:116px}.metric-card strong{font-size:30px}.dashboard-grid{gap:10px}.panel-card{padding:16px}.premium-controls{display:grid;grid-template-columns:1fr 1fr;width:100%}.premium-controls .btn{min-width:0}.premium-sounds{grid-template-columns:repeat(4,1fr)}.focus-side{padding:18px}.settings-hero{padding:20px;border-radius:26px}.settings-hero h2{font-size:32px}.setting-actions{display:grid}.toast{border-radius:22px;padding:12px 14px}.mobile-nav{bottom:8px}.sidebar{z-index:160}}
+
+
+/* v11 Real Improvements */
+.theme-toggle-btn{
+  min-width:56px;
+  font-size:20px;
+  transition:.25s ease;
+}
+.theme-toggle-btn:hover{
+  transform:translateY(-2px) scale(1.05);
+}
+
+.dashboard-shell{
+  gap:22px!important;
+}
+
+.metric-card,
+.panel-card,
+.space-card,
+.task-item,
+.settings-card{
+  backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.08);
+  transition:.25s ease;
+}
+
+.metric-card:hover,
+.panel-card:hover,
+.space-card:hover,
+.task-item:hover{
+  transform:translateY(-4px);
+  border-color:rgba(53,215,255,.28);
+}
+
+.focus-room{
+  border-radius:32px;
+  overflow:hidden;
+}
+
+.premium-controls .btn{
+  height:52px;
+  border-radius:18px;
+  font-weight:900;
+}
+
+.toast{
+  border-radius:28px!important;
+  padding:16px 18px!important;
+  backdrop-filter:blur(18px)!important;
+}
+
+.settings-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+}
+
+.mobile-nav{
+  box-shadow:0 10px 40px rgba(0,0,0,.35);
+}
+
+@media(max-width:720px){
+  .top-actions{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  .dashboard-grid,
+  .metric-grid{
+    gap:12px!important;
+  }
+
+  .toast{
+    bottom:92px!important;
+  }
+}

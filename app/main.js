@@ -492,3 +492,48 @@
   function escapeHtml(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
   function escapeAttr(v=''){return escapeHtml(v).replace(/`/g,'&#096;');}
 })();
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+const themeBtn=document.getElementById("themeToggle");
+
+function updateThemeIcon(){
+  if(document.body.classList.contains("light")){
+    themeBtn.textContent="☀️";
+  }else{
+    themeBtn.textContent="🌙";
+  }
+}
+
+themeBtn?.addEventListener("click",()=>{
+  setTimeout(updateThemeIcon,50);
+});
+
+updateThemeIcon();
+
+const originalToast=window.showToast;
+
+window.showToast=function(message){
+  const toast=document.getElementById("toast");
+  const sound=document.getElementById("notificationSound");
+
+  if(toast){
+    toast.innerHTML=`<b>Navo</b><span>${message}</span>`;
+    toast.classList.add("show");
+
+    try{
+      sound.volume=.35;
+      sound.play();
+    }catch(e){}
+
+    setTimeout(()=>{
+      toast.classList.remove("show");
+    },3200);
+  }
+
+  if(originalToast){
+    originalToast(message);
+  }
+};
+
+});
