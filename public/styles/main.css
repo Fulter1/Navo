@@ -1081,3 +1081,239 @@ body.full-focus-active .focus-pro{
     height:min(360px,84vw)!important;
   }
 }
+
+
+/* =========================================================
+   Focus Pro v7 — polished settings button + persistent timer
+   ========================================================= */
+
+.focus-setup-toggle{
+  position:relative;
+  overflow:hidden;
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:48px!important;
+  border-radius:18px!important;
+  border-color:rgba(91,231,255,.18)!important;
+  background:
+    linear-gradient(135deg,rgba(91,231,255,.10),rgba(255,255,255,.04))!important;
+}
+
+.focus-setup-toggle::before{
+  content:"⚙";
+  font-size:16px;
+}
+
+.focus-setup-toggle::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(110%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+  transition:.35s ease;
+}
+
+.focus-setup-toggle:hover::after{
+  transform:translateX(-110%);
+}
+
+.focus-pro.settings-closed .focus-setup-toggle{
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  width:58px!important;
+  min-height:240px!important;
+  background:
+    radial-gradient(circle at 50% 0,rgba(91,231,255,.18),transparent 42%),
+    rgba(255,255,255,.045)!important;
+}
+
+.focus-pro.settings-closed .focus-setup-toggle::before{
+  content:"⚙";
+  transform:rotate(90deg);
+}
+
+.focus-stage{
+  isolation:isolate;
+}
+
+.focus-stage::after{
+  content:"";
+  position:absolute;
+  inset:10%;
+  border-radius:50%;
+  border:1px solid rgba(91,231,255,.08);
+  filter:blur(.2px);
+  pointer-events:none;
+  animation:focusOrbit 12s linear infinite;
+}
+
+@keyframes focusOrbit{
+  to{transform:rotate(360deg)}
+}
+
+.focus-ring-pro{
+  transform:translateZ(0);
+  will-change:background,transform;
+}
+
+.focus-ring-pro::after{
+  animation:ringGlow 3.4s ease-in-out infinite;
+}
+
+@keyframes ringGlow{
+  50%{opacity:.58;box-shadow:0 0 58px rgba(91,231,255,.18),inset 0 0 28px rgba(91,231,255,.10)}
+}
+
+.focus-time b{
+  background:linear-gradient(180deg,#fff,var(--accent));
+  -webkit-background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 0 18px rgba(91,231,255,.16));
+}
+
+.focus-stage.running .focus-time b{
+  animation:timerBreath 2.4s ease-in-out infinite;
+}
+
+@keyframes timerBreath{
+  50%{letter-spacing:-2px;filter:drop-shadow(0 0 26px rgba(91,231,255,.24))}
+}
+
+.focus-status-dots{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-top:10px;
+}
+
+.focus-status-dots i{
+  width:7px;
+  height:7px;
+  border-radius:99px;
+  background:rgba(255,255,255,.18);
+}
+
+.focus-status-dots i.active{
+  background:var(--accent);
+  box-shadow:0 0 16px rgba(91,231,255,.55);
+}
+
+.focus-motivation{
+  margin:12px auto 0;
+  width:min(560px,92%);
+  padding:12px 14px;
+  border:1px solid rgba(91,231,255,.15);
+  border-radius:20px;
+  background:rgba(91,231,255,.045);
+  color:var(--muted);
+  line-height:1.7;
+  font-weight:800;
+}
+
+.focus-running-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:10px;
+  padding:7px 11px;
+  border-radius:999px;
+  border:1px solid rgba(62,229,142,.2);
+  color:#b5f5d1;
+  background:rgba(62,229,142,.07);
+  font-size:12px;
+  font-weight:900;
+}
+
+.focus-running-badge::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#3EE58E;
+  box-shadow:0 0 12px rgba(62,229,142,.55);
+}
+
+.focus-stage.paused .focus-running-badge{
+  border-color:rgba(255,209,102,.2);
+  color:#ffdf9a;
+  background:rgba(255,209,102,.07);
+}
+
+.focus-stage.paused .focus-running-badge::before{
+  background:#FFD166;
+  box-shadow:0 0 12px rgba(255,209,102,.55);
+}
+
+.focus-fullscreen .focus-motivation{
+  width:min(620px,90%);
+  font-size:14px;
+}
+
+.focus-fullscreen .focus-status-dots{
+  margin-top:14px;
+}
+
+@media(max-width:650px){
+  .focus-pro.settings-closed .focus-setup-toggle{
+    writing-mode:horizontal-tb!important;
+    transform:none!important;
+    min-height:48px!important;
+    width:100%!important;
+  }
+}
+
+
+/* Beta Banner */
+
+.beta-banner{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:16px 18px;
+  margin-bottom:18px;
+  border-radius:22px;
+  background:linear-gradient(135deg,rgba(91,231,255,.12),rgba(124,92,255,.10));
+  border:1px solid rgba(91,231,255,.15);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  box-shadow:0 10px 30px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.beta-banner-icon{
+  width:46px;
+  height:46px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  font-size:20px;
+  background:rgba(91,231,255,.12);
+  border:1px solid rgba(91,231,255,.18);
+  flex-shrink:0;
+}
+
+.beta-banner-content{flex:1}
+
+.beta-banner-content h3{
+  margin:0 0 4px;
+  font-size:16px;
+  font-weight:900;
+  color:var(--text);
+}
+
+.beta-banner-content p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.7;
+  font-size:14px;
+}
+
+.beta-banner-close{
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:16px;
+}

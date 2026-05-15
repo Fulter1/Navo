@@ -20,6 +20,9 @@ let focusStudyFullscreen = false;
 let focusSettingsOpen = localStorage.getItem("navo_focus_settings_open") !== "false";
 let navoAudioCtx = null;
 let focusTickFlip = false;
+const focusPersistentKey = "navo_focus_timer_state";
+let focusEndAt = Number(localStorage.getItem("navo_focus_end_at") || 0);
+let focusPausedLeft = Number(localStorage.getItem("navo_focus_paused_left") || 0);
 
 let cleanFocusFullscreen = false;
 
@@ -51,7 +54,16 @@ function toast(t){
 function cleanNotify(title, message, tone="info"){
   const el = $("#navoAlert");
   if(!el) return toast(message);
-  el.innerHTML = `<b>${esc(title)}</b><span>${esc(message)}</span>`;
+  el.innerHTML = `
+<div class="beta-banner">
+  <div class="beta-banner-icon">✨</div>
+  <div class="beta-banner-content">
+    <h3>مرحبًا بك في النسخة المبكرة من Navo</h3>
+    <p>نحن نبني تجربة تركيز ودراسة تتطور باستمرار، وملاحظاتك تساعدنا نصنع شيء أفضل كل يوم.</p>
+  </div>
+  <button class="beta-banner-close" onclick="this.parentElement.remove()">✕</button>
+</div>
+<b>${esc(title)}</b><span>${esc(message)}</span>`;
   el.classList.add("show");
   cleanTone(tone);
   clearTimeout(cleanNotify.t);
@@ -290,20 +302,17 @@ function renderFocus(){
   const stageTitle = isBreak ? "بريك بدون مشتتات" : "جلسة مذاكرة عميقة";
   const stageSub = isBreak
     ? "خذ راحة خفيفة، اشرب موية، وارجع تلقائيًا للجلسة التالية."
-    : "ركز على مادة وحدة فقط. إذا خلص الوقت يبدأ البريك تلقائيًا.";
+    : "ركز على مادة وحدة فقط. المؤقت يكمل حتى لو طلعت من الصفحة.";
   const stateText = isBreak ? "BREAK" : "STUDY";
   const focusMinutesValue = Math.round(focusTotal / 60);
-  const quotes = [
-    "ابدأ بخمس دقائق، والباقي يسهل.",
-    "لا تذاكر كل شيء، ذاكر الشيء القادم فقط.",
-    "هدوءك أهم من سرعتك.",
-    "جلسة واحدة مركزة أفضل من ساعة مشتتة."
-  ];
-  const quote = quotes[(focusSessionDone + new Date().getDate()) % quotes.length];
+  const motivation = isBreak
+    ? "لا تحول البريك لتشتت. خذ نفس، تمدد، وارجع."
+    : "كل ثانية تركيز الآن تختصر عليك تعب كثير بعدين.";
+  const dots = Array.from({length: focusSessionsTarget}, (_, i) => `<i class="${i < focusSessionDone ? "active" : ""}"></i>`).join("");
 
   $("#focusPage").innerHTML = `
     <div class="focus-pro ${focusSettingsOpen ? "" : "settings-closed"}">
-      <section id="focusStage" class="focus-stage glass ${focusRunning ? "running" : ""} ${isBreak ? "break-mode" : ""} ${focusStudyFullscreen ? "focus-fullscreen" : ""} ${isLastMinute ? "last-minute" : ""}">
+      <section id="focusStage" class="focus-stage glass ${focusRunning ? "running" : "paused"} ${isBreak ? "break-mode" : ""} ${focusStudyFullscreen ? "focus-fullscreen" : ""} ${isLastMinute ? "last-minute" : ""}">
         ${focusStudyFullscreen ? `<button class="btn ghost focus-exit-full" data-action="fullStudyFocus">تصغير</button>` : ""}
         <div class="focus-center">
           <span id="focusStateChip" class="chip focus-state-chip">${stateText} MODE</span>
@@ -319,11 +328,10 @@ function renderFocus(){
           </div>
 
           <div id="focusMiniBar" class="focus-mini-bar" style="--progress-width:${progress}%"><i></i></div>
-          
-          <div class="focus-quote">${quote}</div>
+          <div class="focus-status-dots">${dots}</div>
+          <div class="focus-running-badge">${focusRunning ? "المؤقت يعمل حتى لو خرجت من الموقع" : "المؤقت متوقف"}</div>
+          <div class="focus-motivation">${motivation}</div>
           <div class="focus-muted-line">${focusStudyFullscreen ? "وضع الشاشة الكاملة — Esc للخروج" : "اضغط تكبير الشاشة لتجربة مذاكرة أبسط"}</div>
-
-          
 
           <div class="focus-buttons">
             <button class="btn primary" data-action="toggleFocus">${focusRunning ? "إيقاف مؤقت" : "ابدأ"}</button>
@@ -340,7 +348,7 @@ function renderFocus(){
         <p class="muted">اكتب وقت المذاكرة والبريك بنفسك. الافتراضي 25 دقيقة مذاكرة و5 دقائق بريك.</p>
 
         <button class="btn ghost full focus-setup-toggle" data-action="toggleFocusSettings">
-          ${focusSettingsOpen ? "إخفاء إعداد التركيز" : "فتح إعداد التركيز"}
+          ${focusSettingsOpen ? "إخفاء الإعدادات" : "فتح الإعدادات"}
         </button>
 
         <div class="focus-settings-panel ${focusSettingsOpen ? "" : "closed"}">
@@ -392,7 +400,7 @@ function renderFocus(){
           </div>
         </div>
 
-        <div class="focus-auto-badge">✓ نغمة عند النهاية + البريك يبدأ تلقائيًا</div>
+        <div class="focus-auto-badge">✓ نغمة + بريك تلقائي + مؤقت مستمر</div>
 
         <div class="focus-stat-row">
           <div class="focus-stat-mini">
@@ -407,7 +415,7 @@ function renderFocus(){
 
         <div class="focus-tips">
           <b>نصيحة للمذاكرة:</b><br>
-          قبل ما تبدأ، افتح المادة فقط، اقفل الإشعارات، واكتب هدف الجلسة قبل ما تبدأ.
+          خلك على مؤقت واحد. لا تفتح قوائم ثانية لين يخلص.
         </div>
       </aside>
     </div>
@@ -427,6 +435,7 @@ function renderFocus(){
   if(sessionTarget) sessionTarget.onchange = () => {
     focusSessionsTarget = Number(sessionTarget.value);
     localStorage.setItem("navo_focus_sessions", String(focusSessionsTarget));
+    saveFocusRuntime();
     renderFocus();
   };
 
@@ -437,6 +446,7 @@ function renderFocus(){
     focusRunning = false;
     clearInterval(timer);
     timer = null;
+    saveFocusRuntime();
     renderFocus();
   };
 
@@ -686,39 +696,35 @@ function toggleFocus(){
   ensureFocusAudio();
 
   if(focusRunning){
+    focusLeft = Math.max(0, Math.ceil((focusEndAt - Date.now()) / 1000));
     clearInterval(timer);
     timer = null;
     focusRunning = false;
-    if(typeof cleanNotify === "function") cleanNotify("إيقاف مؤقت", "تقدر تكمل الجلسة بعد شوي.", "info");
+    focusEndAt = 0;
+    saveFocusRuntime();
+    if(typeof cleanNotify === "function") cleanNotify("إيقاف مؤقت", "المؤقت توقف، وتقدر تكمل لاحقًا.", "info");
     else toast("تم الإيقاف المؤقت");
     renderFocus();
     return;
   }
 
   focusRunning = true;
-  if(typeof cleanNotify === "function") cleanNotify(focusModeType === "break" ? "بدأ البريك" : "بدأت المذاكرة", focusModeType === "break" ? "خذ نفس بدون مشتتات." : "ركز على مهمة وحدة فقط.", "focus");
+  focusEndAt = Date.now() + (focusLeft * 1000);
+  saveFocusRuntime();
+
+  if(typeof cleanNotify === "function") cleanNotify(focusModeType === "break" ? "بدأ البريك" : "بدأت المذاكرة", focusModeType === "break" ? "خذ نفس بدون مشتتات." : "المؤقت يكمل حتى لو خرجت من الصفحة.", "focus");
 
   renderFocus();
-
-  timer = setInterval(async () => {
-    focusLeft = Math.max(0, focusLeft - 1);
-    updateFocusVisuals();
-
-    if(focusLeft <= 0){
-      if(focusModeType === "focus"){
-        await completeFocus();
-      }else{
-        completeBreak();
-      }
-    }
-  }, 1000);
+  restartPersistentInterval();
 }
 
 function resetFocus(){
   clearInterval(timer);
   timer = null;
   focusRunning = false;
+  focusEndAt = 0;
   focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+  saveFocusRuntime();
   renderFocus();
   if(typeof cleanNotify === "function") cleanNotify("تمت الإعادة", "رجع المؤقت للبداية.", "info");
   else toast("تمت إعادة الجلسة");
@@ -728,6 +734,7 @@ async function completeFocus(){
   clearInterval(timer);
   timer = null;
   focusRunning = false;
+  focusEndAt = 0;
 
   try{
     const data = await request("/api/focus/complete", {
@@ -756,6 +763,7 @@ async function completeFocus(){
       focusLeft = focusTotal;
       focusStudyFullscreen = false;
       document.body.classList.remove("full-focus-active");
+      clearFocusRuntime();
       if(document.fullscreenElement){
         try{ await document.exitFullscreen(); }catch{}
       }
@@ -768,19 +776,12 @@ async function completeFocus(){
     focusModeType = "break";
     focusLeft = focusBreakMinutes * 60;
     focusRunning = true;
+    focusEndAt = Date.now() + (focusLeft * 1000);
+    saveFocusRuntime();
+
     renderAll();
     setPage("focus");
-
-    timer = setInterval(() => {
-      focusLeft = Math.max(0, focusLeft - 1);
-      updateFocusVisuals();
-
-      if(focusLeft <= 0){
-        completeBreak();
-      }
-    }, 1000);
-
-    updateFocusVisuals();
+    restartPersistentInterval();
   }catch{
     if(typeof cleanNotify === "function") cleanNotify("خطأ", "صار خطأ في حفظ الجلسة.", "warning");
     else toast("صار خطأ في حفظ التركيز");
@@ -789,6 +790,77 @@ async function completeFocus(){
 
 
 
+
+
+function saveFocusRuntime(){
+  const data = {
+    mode: focusModeType,
+    running: focusRunning,
+    left: focusLeft,
+    endAt: focusEndAt,
+    focusMinutes: focusTotal / 60,
+    breakMinutes: focusBreakMinutes,
+    sessionsTarget: focusSessionsTarget,
+    sessionsDone: focusSessionDone,
+    fullscreen: focusStudyFullscreen,
+    savedAt: Date.now()
+  };
+  localStorage.setItem(focusPersistentKey, JSON.stringify(data));
+  localStorage.setItem("navo_focus_end_at", String(focusEndAt || 0));
+  localStorage.setItem("navo_focus_paused_left", String(focusRunning ? 0 : focusLeft));
+}
+
+function loadFocusRuntime(){
+  try{
+    const data = JSON.parse(localStorage.getItem(focusPersistentKey) || "{}");
+    if(!data || !data.mode) return;
+
+    focusModeType = data.mode || "focus";
+    focusTotal = Number(data.focusMinutes || 25) * 60;
+    focusBreakMinutes = Number(data.breakMinutes || 5);
+    focusSessionsTarget = Number(data.sessionsTarget || focusSessionsTarget);
+    focusSessionDone = Number(data.sessionsDone || focusSessionDone);
+    focusEndAt = Number(data.endAt || 0);
+
+    if(data.running && focusEndAt > Date.now()){
+      focusRunning = true;
+      focusLeft = Math.max(0, Math.ceil((focusEndAt - Date.now()) / 1000));
+      restartPersistentInterval();
+    }else if(data.running && focusEndAt <= Date.now()){
+      focusRunning = false;
+      focusLeft = 0;
+      setTimeout(() => {
+        if(focusModeType === "focus") completeFocus();
+        else completeBreak();
+      }, 500);
+    }else{
+      focusRunning = false;
+      focusLeft = Number(data.left || (focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60));
+    }
+  }catch{}
+}
+
+function restartPersistentInterval(){
+  clearInterval(timer);
+  timer = setInterval(async () => {
+    if(!focusRunning || !focusEndAt) return;
+    focusLeft = Math.max(0, Math.ceil((focusEndAt - Date.now()) / 1000));
+    updateFocusVisuals();
+    saveFocusRuntime();
+
+    if(focusLeft <= 0){
+      if(focusModeType === "focus") await completeFocus();
+      else completeBreak();
+    }
+  }, 1000);
+}
+
+function clearFocusRuntime(){
+  focusEndAt = 0;
+  localStorage.removeItem("navo_focus_end_at");
+  localStorage.removeItem("navo_focus_paused_left");
+  localStorage.removeItem(focusPersistentKey);
+}
 
 function getFocusTotalSeconds(){
   return focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
@@ -873,7 +945,11 @@ function updateCustomFocusTimes(quiet=false){
 
   if(!focusRunning){
     focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+  }else{
+    focusEndAt = Date.now() + (focusLeft * 1000);
   }
+
+  saveFocusRuntime();
 
   if(!quiet){
     if(typeof cleanNotify === "function") cleanNotify("تم تحديث الوقت", `${focusMinutes} دقيقة مذاكرة و ${breakMinutes} دقائق بريك.`, "info");
@@ -888,9 +964,11 @@ function applyFocusPreset(focusMinutes, breakMinutes){
   localStorage.setItem("navo_focus_minutes", String(focusMinutes));
   localStorage.setItem("navo_break_minutes", String(breakMinutes));
   focusRunning = false;
+  focusEndAt = 0;
   clearInterval(timer);
   timer = null;
   focusLeft = focusModeType === "focus" ? focusTotal : focusBreakMinutes * 60;
+  saveFocusRuntime();
   if(typeof cleanNotify === "function") cleanNotify("تم اختيار النمط", `${focusMinutes} دقيقة مذاكرة و ${breakMinutes} دقائق بريك.`, "info");
   else toast("تم اختيار النمط");
   renderFocus();
@@ -900,8 +978,10 @@ function completeBreak(){
   clearInterval(timer);
   timer = null;
   focusRunning = false;
+  focusEndAt = 0;
   focusModeType = "focus";
   focusLeft = focusTotal;
+  saveFocusRuntime();
 
   playFocusChime("break");
 
@@ -1082,6 +1162,14 @@ document.addEventListener("webkitfullscreenchange", () => {
     focusStudyFullscreen = false;
     document.body.classList.remove("full-focus-active");
     if(page === "focus") renderFocus();
+  }
+});
+
+
+document.addEventListener("visibilitychange", () => {
+  if(!document.hidden && focusRunning && focusEndAt){
+    focusLeft = Math.max(0, Math.ceil((focusEndAt - Date.now()) / 1000));
+    if(page === "focus") updateFocusVisuals();
   }
 });
 
