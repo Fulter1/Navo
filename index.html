@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#070a12" />
-  <title>Navo 5 — Stable Workspace</title>
+  <title>Navo v7 — Luxury Workspace</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/navo-icon.png" />
   <link rel="apple-touch-icon" href="assets/navo-icon.png" />
@@ -16,6 +16,18 @@
 <body>
   <div class="app-bg" aria-hidden="true"><i></i><i></i><i></i></div>
   <div id="toast" class="toast" aria-live="polite"></div>
+  <div id="navoWelcome" class="navo-welcome" aria-hidden="true">
+    <div class="welcome-card">
+      <img src="assets/navo-mark.svg" alt="Navo">
+      <h2 id="welcomeTitle">حيّاك في Navo</h2>
+      <p id="welcomeText">ابدأ بهدوء. مهمة وحدة تكفي عشان يومك يصير أوضح.</p>
+      <div class="welcome-actions">
+        <button id="welcomeStart" class="btn primary">ابدأ الآن</button>
+        <button id="welcomeClose" class="btn ghost">لاحقًا</button>
+      </div>
+    </div>
+  </div>
+
 
   <section id="authView" class="auth-view">
     <div class="auth-shell">

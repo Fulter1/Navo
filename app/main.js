@@ -405,3 +405,170 @@
   function escapeHtml(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
   function escapeAttr(v=''){return escapeHtml(v).replace(/`/g,'&#096;');}
 })();
+
+/* =========================================================
+   Navo v7 Polish Pack — safe DOM enhancements only
+   Keeps original app logic intact and adds UX polish.
+   ========================================================= */
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const WELCOME_KEY = 'navo.v7.welcome.seen';
+  let audioCtx;
+
+  function bootPolish(){
+    enhanceSidebar();
+    enhanceTopbar();
+    showWelcomeOnce();
+    watchPages();
+    window.addEventListener('resize', enhanceSidebar, { passive:true });
+    document.addEventListener('click', globalClick, true);
+  }
+
+  function enhanceSidebar(){
+    const layout = $('#appView');
+    const sidebar = $('#sidebar');
+    const collapse = $('#collapseSidebar');
+    if(!layout || !sidebar || !collapse) return;
+    collapse.textContent = layout.classList.contains('collapsed') ? 'تكبير' : 'تصغير';
+    collapse.title = layout.classList.contains('collapsed') ? 'تكبير القائمة' : 'تصغير القائمة';
+    if(!collapse.dataset.v7){
+      collapse.dataset.v7 = '1';
+      collapse.addEventListener('click', () => setTimeout(() => {
+        collapse.textContent = layout.classList.contains('collapsed') ? 'تكبير' : 'تصغير القائمة';
+        softPing(340,.035);
+      }, 0));
+    }
+  }
+
+  function enhanceTopbar(){
+    const top = $('.topbar');
+    const quick = $('#quickTask');
+    const cmd = $('#cmdBtn');
+    if(top && !top.dataset.v7){
+      top.dataset.v7 = '1';
+      top.insertAdjacentHTML('beforeend','<span class="chip top-pulse">LIVE WORKSPACE</span>');
+    }
+    if(quick) quick.title = 'إضافة مهمة بسرعة';
+    if(cmd) cmd.title = 'لوحة الأوامر';
+  }
+
+  function showWelcomeOnce(){
+    const box = $('#navoWelcome');
+    if(!box) return;
+    const name = localStorage.getItem('navo.stable.session');
+    const display = safeName(name);
+    $('#welcomeTitle') && ($('#welcomeTitle').textContent = display ? `حيّاك يا ${display}` : 'حيّاك في Navo');
+    $('#welcomeText') && ($('#welcomeText').textContent = motivationalLine());
+    const close = () => { box.classList.remove('show'); box.setAttribute('aria-hidden','true'); localStorage.setItem(WELCOME_KEY,'1'); };
+    $('#welcomeClose')?.addEventListener('click', close);
+    $('#welcomeStart')?.addEventListener('click', () => { close(); softPing(520,.08); $('#quickTask')?.click(); });
+    setTimeout(() => {
+      if(!localStorage.getItem(WELCOME_KEY) && !$('#authView')?.classList.contains('hidden')) return;
+      if(!localStorage.getItem(WELCOME_KEY) && $('#appView') && !$('#appView').classList.contains('hidden')){
+        box.classList.add('show'); box.setAttribute('aria-hidden','false'); softPing(440,.06);
+      }
+    }, 850);
+  }
+
+  function safeName(raw){
+    try{ const x = JSON.parse(raw || '{}'); return (x.username || '').replace(/^./, c => c.toUpperCase()); }catch{return ''}
+  }
+  function motivationalLine(){
+    const lines = [
+      'خذ نفس. رتب أول مهمة، والباقي بيصير أسهل.',
+      'اليوم ما يحتاج ضغط. يحتاج وضوح وخطوة صغيرة.',
+      'ابدأ بجلسة تركيز قصيرة، وخلك ثابت.',
+      'Navo جاهز يرتب يومك بهدوء وبدون زحمة.'
+    ];
+    return lines[Math.floor(Math.random()*lines.length)];
+  }
+
+  function watchPages(){
+    const app = $('#appView');
+    if(!app) return;
+    const mo = new MutationObserver(() => {
+      enhanceSidebar(); enhanceTopbar(); enhanceSettings(); enhanceFocus(); enhanceSpaces(); enhanceProfile();
+    });
+    mo.observe(app, { childList:true, subtree:true, attributes:true, attributeFilter:['class'] });
+    setTimeout(() => { enhanceSettings(); enhanceFocus(); enhanceSpaces(); enhanceProfile(); }, 250);
+  }
+
+  function enhanceSettings(){
+    const settings = $('#settings');
+    if(!settings || !settings.classList.contains('active') || settings.dataset.v7) return;
+    settings.dataset.v7 = '1';
+    const grid = settings.querySelector('.settings-grid');
+    if(!grid) return;
+    grid.insertAdjacentHTML('beforeend', `
+      <article class="settings-card glass-card v7-notifications">
+        <h3>الإشعارات والصوت</h3>
+        <p class="muted">تنبيهات خفيفة ومحفزة بدون إزعاج، مع صوت بسيط عند الإنجاز أو بداية التركيز.</p>
+        <div class="notif-panel">
+          <div class="notif-row"><div><b>صوت الإنجاز</b><small>نغمة قصيرة عند إنهاء مهمة</small></div><button class="btn ghost small" data-v7="test-sound">تجربة</button></div>
+          <div class="notif-row"><div><b>تنبيه تحفيزي</b><small>رسالة بسيطة تظهر لك أثناء العمل</small></div><button class="btn primary small" data-v7="motivate">أرسل الآن</button></div>
+        </div>
+      </article>
+      <article class="settings-card glass-card v7-clean-code">
+        <h3>النظافة والأداء</h3>
+        <div class="data-box">تم ترك منطق التطبيق الأساسي بدون ترقيع عشوائي. الإضافات هنا طبقة تحسين منفصلة: تصميم، تجربة، إشعارات، وثبات القائمة.</div>
+      </article>
+    `);
+  }
+
+  function enhanceFocus(){
+    const focus = $('#focus');
+    if(!focus || !focus.classList.contains('active') || focus.dataset.v7) return;
+    focus.dataset.v7 = '1';
+    const room = $('#focusRoom');
+    if(room){
+      room.insertAdjacentHTML('beforeend','<div class="focus-orbit" aria-hidden="true"></div>');
+    }
+  }
+
+  function enhanceSpaces(){
+    const spaces = $('#spaces');
+    if(!spaces || !spaces.classList.contains('active') || spaces.dataset.v7) return;
+    spaces.dataset.v7 = '1';
+    spaces.querySelector('.section-head')?.insertAdjacentHTML('afterend','<p class="muted" style="margin-top:-4px;margin-bottom:14px">قسّم حياتك لمساحات واضحة: دراسة، برمجة، شخصي، أو أي نظام يناسبك.</p>');
+  }
+
+  function enhanceProfile(){
+    const profile = $('#profile');
+    if(!profile || !profile.classList.contains('active') || profile.dataset.v7) return;
+    profile.dataset.v7 = '1';
+    profile.querySelector('.profile-hero')?.insertAdjacentHTML('beforeend','<p class="chip" style="margin:16px auto 0">CALM PROFILE</p>');
+  }
+
+  function globalClick(e){
+    const a = e.target.closest('[data-v7]')?.dataset.v7;
+    if(!a) return;
+    if(a === 'test-sound') { softPing(660,.12); toastLocal('الصوت شغال — نغمة خفيفة وفخمة.'); }
+    if(a === 'motivate') { softPing(520,.08); toastLocal(motivationalLine()); }
+  }
+
+  function softPing(freq=440, dur=.06){
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.055, audioCtx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + dur + .02);
+    }catch{}
+  }
+
+  function toastLocal(message){
+    const t = $('#toast'); if(!t) return;
+    t.textContent = message;
+    t.classList.add('show');
+    clearTimeout(t._v7Timer);
+    t._v7Timer = setTimeout(()=>t.classList.remove('show'), 2800);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootPolish);
+  else bootPolish();
+})();
